@@ -342,12 +342,12 @@ export function HabitCompletionHeatmap({ habitId }: HabitCompletionHeatmapProps)
           </div>
         </div>
         
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center justify-center sm:justify-start space-x-2">
             <Button variant="outline" size="sm" onClick={() => navigateDate('prev')}>
               <ChevronLeft className="w-4 h-4" />
             </Button>
-            <h3 className="text-lg font-semibold">
+            <h3 className="text-base sm:text-lg font-semibold text-center">
               {viewMode === 'week' 
                 ? `Week of ${currentDate.toLocaleDateString()}`
                 : currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
@@ -358,7 +358,7 @@ export function HabitCompletionHeatmap({ habitId }: HabitCompletionHeatmapProps)
             </Button>
           </div>
           
-          <div className="text-sm text-muted-foreground">
+          <div className="text-sm text-muted-foreground text-center sm:text-right">
             {perfectDays}/{totalDaysWithHabits} perfect days
           </div>
         </div>

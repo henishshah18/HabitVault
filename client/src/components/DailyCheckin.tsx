@@ -205,17 +205,8 @@ export function DailyCheckin({ onLogout, onNewHabit }: DailyCheckinProps) {
     }
   };
 
-  const getTargetDaysVariant = (targetDays: string) => {
-    switch (targetDays) {
-      case 'every_day':
-        return 'default';
-      case 'weekdays':
-        return 'secondary';
-      case 'custom':
-        return 'outline';
-      default:
-        return 'outline';
-    }
+  const getTargetDaysVariant = (targetDays: string): "default" | "destructive" | "outline" | "secondary" => {
+    return 'outline'; // Consistent plain white and black styling for all chips
   };
 
   if (isLoading) {

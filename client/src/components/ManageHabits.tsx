@@ -136,23 +136,44 @@ export function ManageHabits({ onLogout }: ManageHabitsProps) {
       case 'weekdays':
         return 'Weekdays';
       case 'custom':
-        return 'Custom';
+        if (targetDays.includes(',')) {
+          const dayMap: { [key: string]: string } = {
+            'monday': 'Mon',
+            'tuesday': 'Tue', 
+            'wednesday': 'Wed',
+            'thursday': 'Thu',
+            'friday': 'Fri',
+            'saturday': 'Sat',
+            'sunday': 'Sun'
+          };
+          const days = targetDays.split(',').map(day => 
+            dayMap[day.trim().toLowerCase()] || day.trim()
+          );
+          return days.join(', ');
+        }
+        return targetDays;
       default:
+        if (targetDays.includes(',')) {
+          const dayMap: { [key: string]: string } = {
+            'monday': 'Mon',
+            'tuesday': 'Tue', 
+            'wednesday': 'Wed',
+            'thursday': 'Thu',
+            'friday': 'Fri',
+            'saturday': 'Sat',
+            'sunday': 'Sun'
+          };
+          const days = targetDays.split(',').map(day => 
+            dayMap[day.trim().toLowerCase()] || day.trim()
+          );
+          return days.join(', ');
+        }
         return targetDays;
     }
   };
 
-  const getTargetDaysVariant = (targetDays: string) => {
-    switch (targetDays) {
-      case 'every_day':
-        return 'default';
-      case 'weekdays':
-        return 'secondary';
-      case 'custom':
-        return 'outline';
-      default:
-        return 'outline';
-    }
+  const getTargetDaysVariant = (targetDays: string): "default" | "destructive" | "outline" | "secondary" => {
+    return 'outline'; // Consistent plain white and black styling for all chips
   };
 
   if (isLoading) {
@@ -243,24 +264,22 @@ export function ManageHabits({ onLogout }: ManageHabitsProps) {
                       </div>
                     </div>
                   </CardContent>
-                  <CardFooter className="flex justify-between pt-2">
+                  <CardFooter className="flex justify-end space-x-2 pt-2">
                     <Button
-                      variant="outline"
+                      variant="ghost"
                       size="sm"
                       onClick={() => handleEdit(habit)}
-                      className="flex items-center space-x-1"
+                      className="p-2 h-8 w-8"
                     >
-                      <Edit className="w-3 h-3" />
-                      <span>Edit</span>
+                      <Edit className="w-4 h-4" />
                     </Button>
                     <Button
-                      variant="destructive"
+                      variant="ghost"
                       size="sm"
                       onClick={() => handleDelete(habit.id)}
-                      className="flex items-center space-x-1"
+                      className="p-2 h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
                     >
-                      <Trash2 className="w-3 h-3" />
-                      <span>Delete</span>
+                      <Trash2 className="w-4 h-4" />
                     </Button>
                   </CardFooter>
                 </Card>

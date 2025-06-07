@@ -121,13 +121,11 @@ export function Dashboard({ onLogout }: DashboardProps) {
   return (
     <div className="flex h-screen bg-background">
       {/* Sidebar */}
-      <div className="w-64 flex-shrink-0 border-r bg-card">
-        <Sidebar 
-          activeTab={activeTab} 
-          onTabChange={setActiveTab} 
-          onLogout={handleLogout} 
-        />
-      </div>
+      <Sidebar 
+        activeTab={activeTab} 
+        onTabChange={setActiveTab} 
+        onLogout={handleLogout} 
+      />
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col overflow-hidden">

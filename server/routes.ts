@@ -28,26 +28,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
   await new Promise(resolve => setTimeout(resolve, 3000));
 
   // Proxy API requests to Flask backend
-  app.use('/api/*', async (req, res) => {
+  app.use('/api', async (req, res) => {
     try {
-      const flaskUrl = `http://localhost:5001${req.path}`;
+      const flaskUrl = `http://localhost:5001${req.originalUrl}`;
+      log(`Proxying ${req.method} ${req.originalUrl} to ${flaskUrl}`);
       
-      const response = await fetch(flaskUrl, {
+      const requestOptions: RequestInit = {
         method: req.method,
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        body: req.method !== 'GET' ? JSON.stringify(req.body) : undefined
-      });
+          'Accept': 'application/json',
+          ...req.headers
+        }
+      };
+
+      if (req.method !== 'GET' && req.method !== 'HEAD') {
+        requestOptions.body = JSON.stringify(req.body);
+      }
+
+      const response = await fetch(flaskUrl, requestOptions);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        log(`Flask error response: ${response.status} - ${errorText}`, "error");
+        return res.status(response.status).json({ 
+          error: 'Flask backend error',
+          details: errorText
+        });
+      }
 
       const data = await response.json();
       res.status(response.status).json(data);
     } catch (err: any) {
-      log(`Flask backend error: ${err.message}`, "error");
+      log(`Proxy error: ${err.message}`, "error");
       res.status(503).json({ 
         error: 'Flask backend unavailable',
-        message: 'Please ensure Flask is running on port 5001'
+        message: `Connection failed: ${err.message}`
       });
     }
   });

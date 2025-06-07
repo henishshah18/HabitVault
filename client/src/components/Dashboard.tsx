@@ -72,10 +72,14 @@ export function Dashboard({ onLogout }: DashboardProps) {
     onLogout();
   };
 
+  const handleNewHabit = () => {
+    setActiveTab('manage-habits');
+  };
+
   const renderActiveContent = () => {
     switch (activeTab) {
       case 'daily-checkin':
-        return <DailyCheckin onLogout={onLogout} />;
+        return <DailyCheckin onLogout={onLogout} onNewHabit={handleNewHabit} />;
       case 'manage-habits':
         return <ManageHabits onLogout={onLogout} />;
       case 'analytics':
@@ -83,7 +87,7 @@ export function Dashboard({ onLogout }: DashboardProps) {
       case 'settings':
         return <Settings />;
       default:
-        return <DailyCheckin onLogout={onLogout} />;
+        return <DailyCheckin onLogout={onLogout} onNewHabit={handleNewHabit} />;
     }
   };
 

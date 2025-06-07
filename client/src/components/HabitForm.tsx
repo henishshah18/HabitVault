@@ -10,10 +10,15 @@ import { ArrowLeft, Save, X } from 'lucide-react';
 
 interface Habit {
   id: number;
+  unique_id: string;
   name: string;
   target_days: string;
   start_date: string;
   user_id: number;
+  current_streak: number;
+  longest_streak: number;
+  is_due_today: boolean;
+  is_completed_today: boolean;
 }
 
 interface HabitFormProps {

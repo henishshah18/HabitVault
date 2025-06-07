@@ -90,10 +90,7 @@ export function Settings() {
         detail: { userId, settings }
       }));
       
-      toast({
-        title: "Settings Saved",
-        description: "Your preferences have been saved successfully.",
-      });
+      // Don't show automatic toast - only show "Saved" state
     } catch (error) {
       console.error('Failed to save settings:', error);
       toast({
@@ -102,19 +99,7 @@ export function Settings() {
         variant: "destructive",
       });
     } finally {
-      setIsSaving(false);
-    }
-  };
-
-  // Reset to original settings
-  const resetSettings = () => {
-    setSettings(originalSettings);
-    
-    // Revert dark mode
-    if (originalSettings.darkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
+      setTimeout(() => setIsSaving(false), 1000); // Keep "Saved" state for 1 second
     }
   };
 
@@ -179,48 +164,27 @@ export function Settings() {
 
 
 
-      {/* Save/Reset Actions */}
-      {hasChanges && (
-        <div className="flex justify-end space-x-3">
-          <Button
-            variant="outline"
-            onClick={resetSettings}
-            disabled={isSaving}
-          >
-            Reset
-          </Button>
-          <Button
-            onClick={saveSettings}
-            disabled={isSaving}
-          >
-            {isSaving ? (
-              <>
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                Saving...
-              </>
-            ) : (
-              <>
-                <Save className="w-4 h-4 mr-2" />
-                Save Settings
-              </>
-            )}
-          </Button>
-        </div>
-      )}
-
-      {/* Success indicator when no changes */}
-      {!hasChanges && originalSettings.darkMode !== undefined && (
-        <Card className="border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950/20">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-center space-x-2">
-              <Check className="w-5 h-5 text-green-600 dark:text-green-400" />
-              <p className="text-green-700 dark:text-green-300 font-medium">
-                All settings saved
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      {/* Save Button - Always visible */}
+      <div className="flex justify-end">
+        <Button
+          onClick={saveSettings}
+          disabled={!hasChanges || isSaving}
+          variant={hasChanges ? "default" : "secondary"}
+          className={hasChanges ? "bg-blue-600 hover:bg-blue-700" : ""}
+        >
+          {isSaving ? (
+            <>
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+              Saved
+            </>
+          ) : (
+            <>
+              <Save className="w-4 h-4 mr-2" />
+              Save Settings
+            </>
+          )}
+        </Button>
+      </div>
     </div>
   );
 }

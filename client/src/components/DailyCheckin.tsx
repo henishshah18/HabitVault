@@ -154,17 +154,7 @@ export function DailyCheckin({ onLogout, onNewHabit }: DailyCheckinProps) {
         const newCompletedToday = newTodaysHabits.filter(habit => habit.is_completed_today);
         const willBeAllComplete = newTodaysHabits.length > 0 && newCompletedToday.length === newTodaysHabits.length;
         
-        // Update temporary perfect day adjustment for real-time UI updates
-        if (!wasAllComplete && willBeAllComplete) {
-          // Just completed all habits - show +1 in UI
-          setTempPerfectDayAdjustment(1);
-        } else if (wasAllComplete && !willBeAllComplete) {
-          // Just broke perfect day - show -1 in UI
-          setTempPerfectDayAdjustment(-1);
-        } else {
-          // No change in perfect day status - reset to 0
-          setTempPerfectDayAdjustment(0);
-        }
+        // Perfect day completion logic removed - milestone progress card was removed
         
         toast({
           title: 'Success',
@@ -353,10 +343,7 @@ export function DailyCheckin({ onLogout, onNewHabit }: DailyCheckinProps) {
                 fetchHabits(); // Refresh to get updated data
                 fetchUserData(); // Refresh user data for milestone updates
                 
-                // If new habit is due today and we had perfect day, reset temp adjustment
-                if (newHabit.is_due_today && tempPerfectDayAdjustment > 0) {
-                  setTempPerfectDayAdjustment(0); // Reset since new uncompleted habit breaks perfect day
-                }
+                // New habit added successfully
               }}
               onCancel={() => setShowHabitForm(false)}
             />

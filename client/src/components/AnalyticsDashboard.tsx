@@ -4,6 +4,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { BarChart3, TrendingUp, Calendar, Target } from 'lucide-react';
 import { HabitCalendar } from './HabitCalendar';
 import { getCurrentUserId, getUserPreferences, updateUserPreference } from '@/lib/localStorage';
+import { getTodayLocalDate } from '@/lib/timeUtils';
 
 interface Habit {
   id: number;
@@ -67,7 +68,8 @@ export function AnalyticsDashboard() {
       const token = localStorage.getItem('authToken');
       if (!token) return;
 
-      const response = await fetch('/api/habits', {
+      const localDate = getTodayLocalDate();
+      const response = await fetch(`/api/habits?local_date=${localDate}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },

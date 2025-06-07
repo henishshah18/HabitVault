@@ -117,9 +117,12 @@ export function HabitCalendar({ habits: externalHabits, onDataUpdate }: HabitCal
 
   // Check if a habit is due on a specific date
   const isHabitDueOnDate = (habit: Habit, date: Date): boolean => {
-    // First check if the date is on or after the habit start date
-    const habitStartDate = new Date(habit.start_date);
-    if (date < habitStartDate) return false;
+    // First check if the date is on or after the habit start date using date-only comparison
+    const habitStartDate = new Date(habit.start_date + 'T00:00:00');
+    const checkDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    const startDate = new Date(habitStartDate.getFullYear(), habitStartDate.getMonth(), habitStartDate.getDate());
+    
+    if (checkDate < startDate) return false;
 
     const dayOfWeek = date.getDay(); // 0 = Sunday, 1 = Monday, etc.
     // Convert to backend format: 0=Monday, 6=Sunday

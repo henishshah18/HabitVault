@@ -361,9 +361,14 @@ export function DailyCheckin({ onLogout, onNewHabit }: DailyCheckinProps) {
           <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4">
             <HabitForm
               onSuccess={(newHabit) => {
-                setHabits(prev => [...prev, newHabit]);
                 setShowHabitForm(false);
                 fetchHabits(); // Refresh to get updated data
+                fetchUserData(); // Refresh user data for milestone updates
+                
+                // If new habit is due today and we had perfect day, reset temp adjustment
+                if (newHabit.is_due_today && tempPerfectDayAdjustment > 0) {
+                  setTempPerfectDayAdjustment(0); // Reset since new uncompleted habit breaks perfect day
+                }
               }}
               onCancel={() => setShowHabitForm(false)}
             />

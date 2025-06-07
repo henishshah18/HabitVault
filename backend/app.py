@@ -77,6 +77,39 @@ def create_app():
         db.create_all()
         initialize_database()
     
+    # Helper function to update perfect day status
+    def update_perfect_day_status(user_id, today):
+        """Update perfect day status for a user on a given date"""
+        user = User.query.get(user_id)
+        if not user:
+            return
+        
+        # Get all habits due today for this user
+        user_habits = Habit.query.filter_by(user_id=user_id).all()
+        habits_due_today = [h for h in user_habits if h.is_due_today()]
+        
+        # Check if all habits due today are completed
+        all_completed = True
+        for due_habit in habits_due_today:
+            habit_completed = HabitCompletion.query.filter_by(
+                habit_id=due_habit.id,
+                completion_date=today
+            ).first()
+            if not habit_completed:
+                all_completed = False
+                break
+        
+        # Update perfect day status
+        today_str = today.isoformat()
+        if all_completed and len(habits_due_today) > 0:
+            # Add today to perfect days if not already there
+            if not user.has_perfect_day(today_str):
+                user.add_perfect_day(today_str)
+        else:
+            # Remove today from perfect days if it was there but no longer complete
+            if user.has_perfect_day(today_str):
+                user.remove_perfect_day(today_str)
+
     # Routes
     @app.route('/api/hello', methods=['GET'])
     def hello():
@@ -285,6 +318,11 @@ def create_app():
             db.session.add(habit)
             db.session.commit()
             
+            # Recalculate perfect day status since a new habit affects today's requirements
+            today = date.today()
+            update_perfect_day_status(current_user_id, today)
+            db.session.commit()
+            
             return jsonify({
                 'message': 'Habit created successfully',
                 'habit': habit.to_dict()
@@ -414,39 +452,19 @@ def create_app():
             if habit.current_streak > habit.longest_streak:
                 habit.longest_streak = habit.current_streak
             
-            # Check for perfect day and update user's perfect days counter
-            user = User.query.get(current_user_id)
-            all_completed = False
-            habits_due_today = []
-            
-            if user:
-                # Get all habits due today for this user
-                user_habits = Habit.query.filter_by(user_id=current_user_id).all()
-                habits_due_today = [h for h in user_habits if h.is_due_today()]
-                
-                # Check if all habits due today are now completed
-                all_completed = True
-                for due_habit in habits_due_today:
-                    habit_completed = HabitCompletion.query.filter_by(
-                        habit_id=due_habit.id,
-                        completion_date=today
-                    ).first()
-                    if not habit_completed:
-                        all_completed = False
-                        break
-                
-                # If perfect day achieved and we have habits due today
-                today_str = today.isoformat()
-                if all_completed and len(habits_due_today) > 0:
-                    # Add today to perfect days if not already there
-                    if not user.has_perfect_day(today_str):
-                        user.add_perfect_day(today_str)
-                else:
-                    # Remove today from perfect days if it was there but no longer complete
-                    if user.has_perfect_day(today_str):
-                        user.remove_perfect_day(today_str)
+            # Update perfect day tracking - moved to separate function to avoid duplication
+            update_perfect_day_status(current_user_id, today)
             
             db.session.commit()
+            
+            # Get perfect day status for response
+            user = User.query.get(current_user_id)
+            user_habits = Habit.query.filter_by(user_id=current_user_id).all()
+            habits_due_today = [h for h in user_habits if h.is_due_today()]
+            all_completed = all(
+                HabitCompletion.query.filter_by(habit_id=h.id, completion_date=today).first()
+                for h in habits_due_today
+            )
             
             return jsonify({
                 'message': 'Habit completed successfully',
@@ -488,13 +506,8 @@ def create_app():
             # Reset current streak (simple approach - can be enhanced)
             habit.current_streak = max(0, habit.current_streak - 1)
             
-            # Check if this affects perfect day status
-            user = User.query.get(current_user_id)
-            if user:
-                today_str = today.isoformat()
-                # Remove today from perfect days since a habit is now incomplete
-                if user.has_perfect_day(today_str):
-                    user.remove_perfect_day(today_str)
+            # Update perfect day tracking after uncompleting habit
+            update_perfect_day_status(current_user_id, today)
             
             db.session.commit()
             

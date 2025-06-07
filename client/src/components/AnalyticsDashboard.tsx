@@ -24,11 +24,15 @@ export function AnalyticsDashboard() {
 
   useEffect(() => {
     fetchHabits();
+    
+    // Auto-refresh every 30 seconds to show real-time updates
+    const interval = setInterval(fetchHabits, 30000);
+    return () => clearInterval(interval);
   }, []);
 
   const fetchHabits = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('authToken');
       if (!token) return;
 
       const response = await fetch('/api/habits', {

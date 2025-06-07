@@ -41,6 +41,7 @@ export function DailyCheckin({ onLogout, onNewHabit }: DailyCheckinProps) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+  const [loadingHabits, setLoadingHabits] = useState<Set<number>>(new Set());
   const [showHabitForm, setShowHabitForm] = useState(false);
 
   const { toast } = useToast();
@@ -129,6 +130,9 @@ export function DailyCheckin({ onLogout, onNewHabit }: DailyCheckinProps) {
   const handleToggleCompletion = async (habitId: number, isCompleted: boolean) => {
     const token = localStorage.getItem('authToken');
     
+    // Add loading state for this habit
+    setLoadingHabits(prev => new Set(prev).add(habitId));
+    
     // Optimistic update - update UI immediately
     const optimisticHabits = habits.map(habit => 
       habit.id === habitId 
@@ -157,17 +161,27 @@ export function DailyCheckin({ onLogout, onNewHabit }: DailyCheckinProps) {
       const data = await response.json();
 
       if (response.ok) {
-        // Update with server response based on current optimistic state
-        setHabits(currentHabits => 
-          currentHabits.map(habit => 
-            habit.id === habitId ? data.habit : habit
-          )
-        );
-        
-        // Final event dispatch with server data
-        window.dispatchEvent(new CustomEvent('habitCompletionChanged', {
-          detail: { habitId, isCompleted: !isCompleted, habits: optimisticHabits }
-        }));
+        // Small delay to show loading effect
+        setTimeout(() => {
+          // Update with server response based on current optimistic state
+          setHabits(currentHabits => 
+            currentHabits.map(habit => 
+              habit.id === habitId ? data.habit : habit
+            )
+          );
+          
+          // Remove loading state
+          setLoadingHabits(prev => {
+            const newSet = new Set(prev);
+            newSet.delete(habitId);
+            return newSet;
+          });
+          
+          // Final event dispatch with server data
+          window.dispatchEvent(new CustomEvent('habitCompletionChanged', {
+            detail: { habitId, isCompleted: !isCompleted, habits: optimisticHabits }
+          }));
+        }, 800);
         
 
       } else {
@@ -179,6 +193,14 @@ export function DailyCheckin({ onLogout, onNewHabit }: DailyCheckinProps) {
               : habit
           )
         );
+        
+        // Remove loading state
+        setLoadingHabits(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(habitId);
+          return newSet;
+        });
+        
         window.dispatchEvent(new CustomEvent('habitCompletionChanged', {
           detail: { habitId, isCompleted, habits: optimisticHabits }
         }));
@@ -198,6 +220,14 @@ export function DailyCheckin({ onLogout, onNewHabit }: DailyCheckinProps) {
             : habit
         )
       );
+      
+      // Remove loading state
+      setLoadingHabits(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(habitId);
+        return newSet;
+      });
+      
       window.dispatchEvent(new CustomEvent('habitCompletionChanged', {
         detail: { habitId, isCompleted, habits: optimisticHabits }
       }));
@@ -290,22 +320,36 @@ export function DailyCheckin({ onLogout, onNewHabit }: DailyCheckinProps) {
               {todaysHabits.map((habit) => {
                 const isCompleted = habit.is_completed_today;
                 
+                const isLoading = loadingHabits.has(habit.id);
+                
                 return (
                   <Card 
                     key={habit.id} 
-                    className={`relative transition-all duration-200 ${
+                    className={`relative transition-all duration-500 ${
                       isCompleted 
                         ? 'border-t-4 border-t-green-500' 
                         : 'border-t-4 border-t-yellow-500'
+                    } ${
+                      isLoading 
+                        ? 'opacity-60 scale-[0.98] shadow-lg' 
+                        : 'opacity-100 scale-100'
                     }`}
                   >
                     <CardHeader className="pb-3">
                       <div className="flex items-center space-x-3">
-                        <Checkbox
-                          checked={isCompleted}
-                          onCheckedChange={() => handleToggleCompletion(habit.id, isCompleted)}
-                          className="data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600"
-                        />
+                        <div className="relative">
+                          <Checkbox
+                            checked={isCompleted}
+                            onCheckedChange={() => handleToggleCompletion(habit.id, isCompleted)}
+                            className="data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600"
+                            disabled={isLoading}
+                          />
+                          {isLoading && (
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <div className="w-3 h-3 border border-gray-400 border-t-blue-500 rounded-full animate-spin"></div>
+                            </div>
+                          )}
+                        </div>
                         <div className="flex-1">
                           <CardTitle className="text-lg">
                             <span>{habit.name}</span>

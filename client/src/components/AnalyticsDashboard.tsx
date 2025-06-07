@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { BarChart3, TrendingUp, Calendar, Target } from 'lucide-react';
 import { HabitCalendar } from './HabitCalendar';
+import { getCurrentUserId, getUserPreferences, updateUserPreference } from '@/lib/localStorage';
 
 interface Habit {
   id: number;
@@ -21,8 +22,18 @@ interface Habit {
 export function AnalyticsDashboard() {
   const [habits, setHabits] = useState<Habit[]>([]);
   const [loading, setLoading] = useState(true);
+  const [timeRange, setTimeRange] = useState<'week' | 'month'>('month');
+  const [userId, setUserId] = useState<number | null>(null);
 
   useEffect(() => {
+    // Initialize user preferences
+    const currentUserId = getCurrentUserId();
+    if (currentUserId) {
+      setUserId(currentUserId);
+      const userPrefs = getUserPreferences(currentUserId);
+      setTimeRange(userPrefs.analyticsTimeRange);
+    }
+
     fetchHabits();
     
     // Auto-refresh every 30 seconds to show real-time updates
@@ -40,6 +51,14 @@ export function AnalyticsDashboard() {
       window.removeEventListener('habitCompletionChanged', handleHabitCompletionChange);
     };
   }, []);
+
+  // Handle time range changes and save to localStorage
+  const handleTimeRangeChange = (newTimeRange: 'week' | 'month') => {
+    setTimeRange(newTimeRange);
+    if (userId) {
+      updateUserPreference(userId, 'analyticsTimeRange', newTimeRange);
+    }
+  };
 
   const fetchHabits = async () => {
     try {

@@ -162,7 +162,37 @@ export function Settings() {
         </CardContent>
       </Card>
 
-
+      {/* Analytics Settings */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <Calendar className="w-5 h-5" />
+            <span>Analytics Preferences</span>
+          </CardTitle>
+          <CardDescription>
+            Configure your analytics dashboard display options
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="space-y-1">
+              <Label htmlFor="analytics-time-range">Default Time Range</Label>
+              <p className="text-sm text-muted-foreground">
+                Default time range for analytics and calendar views
+              </p>
+            </div>
+            <Select value={settings.analyticsTimeRange} onValueChange={(value: 'week' | 'month') => updateSetting('analyticsTimeRange', value)}>
+              <SelectTrigger className="w-32">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="week">Week</SelectItem>
+                <SelectItem value="month">Month</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Save Button - Always visible */}
       <div className="flex justify-end">

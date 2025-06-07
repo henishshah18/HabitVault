@@ -26,15 +26,10 @@ function AuthApp() {
       setIsAuthenticated(true);
       setCurrentView('dashboard');
       
-      // Apply saved user preferences on login
+      // Apply saved user preferences immediately on app load
       const userId = parseInt(storedUserId);
-      import('@/lib/localStorage').then(({ getUserPreferences }) => {
-        const userPrefs = getUserPreferences(userId);
-        if (userPrefs.darkMode) {
-          document.documentElement.classList.add('dark');
-        } else {
-          document.documentElement.classList.remove('dark');
-        }
+      import('@/lib/localStorage').then(({ initializeUserPreferences }) => {
+        initializeUserPreferences(userId);
       });
     }
   }, []);

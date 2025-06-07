@@ -41,13 +41,8 @@ export function Login({ onSwitchToRegister, onLoginSuccess, onBackToHome }: Logi
         localStorage.setItem('userId', data.user_id.toString());
         
         // Apply user preferences immediately after login
-        import('@/lib/localStorage').then(({ getUserPreferences }) => {
-          const userPrefs = getUserPreferences(data.user_id);
-          if (userPrefs.darkMode) {
-            document.documentElement.classList.add('dark');
-          } else {
-            document.documentElement.classList.remove('dark');
-          }
+        import('@/lib/localStorage').then(({ initializeUserPreferences }) => {
+          initializeUserPreferences(data.user_id);
         });
         
         toast({

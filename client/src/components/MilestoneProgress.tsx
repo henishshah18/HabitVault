@@ -11,9 +11,13 @@ interface MilestoneData {
 
 interface MilestoneProgressProps {
   milestone: MilestoneData;
+  tempAdjustment?: number;
 }
 
-export function MilestoneProgress({ milestone }: MilestoneProgressProps) {
+export function MilestoneProgress({ milestone, tempAdjustment = 0 }: MilestoneProgressProps) {
+  // Calculate real-time adjusted values
+  const adjustedCount = milestone.current_count + tempAdjustment;
+  const adjustedProgress = (adjustedCount / milestone.next_milestone) * 100;
   return (
     <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 p-4 rounded-lg border border-amber-200 dark:border-amber-800">
       <div className="relative">
@@ -24,7 +28,7 @@ export function MilestoneProgress({ milestone }: MilestoneProgressProps) {
         </div>
         
         <Progress 
-          value={milestone.progress_percentage} 
+          value={adjustedProgress} 
           className="h-3 bg-amber-200 dark:bg-amber-800/30"
         />
         
@@ -34,7 +38,7 @@ export function MilestoneProgress({ milestone }: MilestoneProgressProps) {
             <span className="text-amber-600 dark:text-amber-400">Perfect Days</span>
           </div>
           <span className="text-amber-600 dark:text-amber-400">
-            {milestone.current_count}/{milestone.next_milestone}
+            {adjustedCount}/{milestone.next_milestone}
           </span>
         </div>
       </div>

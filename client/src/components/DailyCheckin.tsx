@@ -46,6 +46,7 @@ export function DailyCheckin({ onLogout, onNewHabit }: DailyCheckinProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [showHabitForm, setShowHabitForm] = useState(false);
+  const [tempPerfectDayAdjustment, setTempPerfectDayAdjustment] = useState(0);
   const { toast } = useToast();
 
   // Calculate progress for today's habits only
@@ -132,6 +133,9 @@ export function DailyCheckin({ onLogout, onNewHabit }: DailyCheckinProps) {
   const handleToggleCompletion = async (habitId: number, isCompleted: boolean) => {
     const token = localStorage.getItem('authToken');
     
+    // Check current perfect day status before change
+    const wasAllComplete = todaysHabits.length > 0 && completedToday.length === todaysHabits.length;
+    
     try {
       const endpoint = isCompleted ? 'uncomplete' : 'complete';
       const response = await fetch(`/api/habits/${habitId}/${endpoint}`, {
@@ -145,9 +149,28 @@ export function DailyCheckin({ onLogout, onNewHabit }: DailyCheckinProps) {
       const data = await response.json();
 
       if (response.ok) {
-        setHabits(habits.map(habit => 
+        // Update habits with new completion status
+        const updatedHabits = habits.map(habit => 
           habit.id === habitId ? data.habit : habit
-        ));
+        );
+        setHabits(updatedHabits);
+        
+        // Calculate new perfect day status
+        const newTodaysHabits = updatedHabits.filter(habit => habit.is_due_today);
+        const newCompletedToday = newTodaysHabits.filter(habit => habit.is_completed_today);
+        const willBeAllComplete = newTodaysHabits.length > 0 && newCompletedToday.length === newTodaysHabits.length;
+        
+        // Update temporary perfect day adjustment for real-time UI updates
+        if (!wasAllComplete && willBeAllComplete) {
+          // Just completed all habits - add 1 to display
+          setTempPerfectDayAdjustment(1);
+        } else if (wasAllComplete && !willBeAllComplete) {
+          // Just broke perfect day - subtract 1 from display
+          setTempPerfectDayAdjustment(-1);
+        } else {
+          // No change in perfect day status
+          setTempPerfectDayAdjustment(0);
+        }
         
         toast({
           title: 'Success',
@@ -233,7 +256,10 @@ export function DailyCheckin({ onLogout, onNewHabit }: DailyCheckinProps) {
 
       {/* Milestone Progress */}
       {user?.milestone && (
-        <MilestoneProgress milestone={user.milestone} />
+        <MilestoneProgress 
+          milestone={user.milestone} 
+          tempAdjustment={tempPerfectDayAdjustment}
+        />
       )}
 
       {/* Today's Targets */}

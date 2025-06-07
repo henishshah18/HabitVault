@@ -588,20 +588,16 @@ def create_app():
             
             # Store UTC timestamp for consistent timezone handling
             local_timestamp = data.get('local_timestamp')
-            print(f"DEBUG: Received local_timestamp from frontend: {local_timestamp}")
             
             if local_timestamp:
                 # Parse the ISO timestamp as UTC (frontend sends local time as UTC)
                 completion_time = datetime.fromisoformat(local_timestamp.replace('Z', '+00:00'))
-                print(f"DEBUG: Storing UTC completion_time: {completion_time}")
             else:
                 completion_time = datetime.utcnow()
-                print(f"DEBUG: No local timestamp, using UTC: {completion_time}")
             
             # Create completion record with accurate timestamp
             completion = HabitCompletion(habit_id=habit_id, completion_date=today)
             completion.completed_at = completion_time
-            print(f"DEBUG: Stored completion.completed_at: {completion.completed_at}")
             db.session.add(completion)
             
             # Calculate current streak properly

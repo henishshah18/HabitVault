@@ -2,13 +2,14 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
+import { useResponsiveBreakpoint } from '@/hooks/use-window-size';
 import { Sidebar } from './Sidebar';
 import { DailyCheckin } from './DailyCheckin';
 import { ManageHabits } from './ManageHabits';
 import { AnalyticsDashboard } from './AnalyticsDashboard';
 import { Settings } from './Settings';
 import { MotivationalQuote } from './MotivationalQuote';
-import { User as UserIcon, Vault } from 'lucide-react';
+import { User as UserIcon, Vault, Menu } from 'lucide-react';
 import { getCurrentUserId, clearUserData, initializeUserPreferences } from '@/lib/localStorage';
 
 interface User {
@@ -28,7 +29,9 @@ export function Dashboard({ onLogout }: DashboardProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState('daily-checkin');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const { toast } = useToast();
+  const { isMobile, isTablet } = useResponsiveBreakpoint();
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -123,24 +126,47 @@ export function Dashboard({ onLogout }: DashboardProps) {
   }
 
   return (
-    <div className="flex h-screen bg-background">
+    <div className="flex h-screen w-screen bg-background overflow-hidden">
+      {/* Mobile Sidebar Overlay */}
+      {isMobile && sidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-40"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
-      <Sidebar 
-        activeTab={activeTab} 
-        onTabChange={setActiveTab} 
-        onLogout={handleLogout} 
-      />
+      <div className={`${isMobile ? 'fixed' : 'relative'} z-50 transition-transform duration-300 ${
+        isMobile && !sidebarOpen ? '-translate-x-full' : 'translate-x-0'
+      }`}>
+        <Sidebar 
+          activeTab={activeTab} 
+          onTabChange={(tab) => {
+            setActiveTab(tab);
+            if (isMobile) setSidebarOpen(false);
+          }} 
+          onLogout={handleLogout} 
+        />
+      </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col overflow-hidden min-w-0">
         {/* Header */}
         <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-          <div className="flex items-center justify-between h-16 px-6">
-            {/* App Logo/Name */}
+          <div className="flex items-center justify-between h-16 px-4 sm:px-6">
+            {/* Mobile Menu Button & App Logo */}
             <div className="flex items-center space-x-3">
+              {isMobile && (
+                <button
+                  onClick={() => setSidebarOpen(true)}
+                  className="p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent"
+                >
+                  <Menu className="w-5 h-5" />
+                </button>
+              )}
               <div className="flex items-center space-x-2">
-                <Vault className="w-8 h-8 text-primary" />
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
+                <Vault className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
+                <h1 className="text-lg sm:text-2xl font-bold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
                   HabitVault
                 </h1>
               </div>
@@ -162,7 +188,7 @@ export function Dashboard({ onLogout }: DashboardProps) {
 
         {/* Main Content */}
         <main className="flex-1 overflow-auto">
-          <div className="h-full w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+          <div className="h-full w-full px-2 sm:px-4 lg:px-8 py-4 sm:py-6 space-y-4 sm:space-y-6">
             {error && (
               <Alert variant="destructive">
                 <AlertDescription>{error}</AlertDescription>
@@ -172,7 +198,7 @@ export function Dashboard({ onLogout }: DashboardProps) {
             {/* Motivational Quote - Only show on Daily Check-in */}
             {activeTab === 'daily-checkin' && (
               <div className="flex justify-center">
-                <div className="w-full max-w-2xl">
+                <div className="w-full max-w-xs sm:max-w-lg lg:max-w-2xl">
                   <MotivationalQuote />
                 </div>
               </div>

@@ -75,7 +75,7 @@ def create_app():
     # Initialize database and create tables
     with app.app_context():
         db.create_all()
-        initialize_database()
+        # initialize_database()  # Commented out to preserve cleaned data
     
     # Helper function to update perfect day status
     def update_perfect_day_status(user_id, today):

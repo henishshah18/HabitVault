@@ -316,7 +316,7 @@ export function HabitCompletionHeatmap({ habitId }: HabitCompletionHeatmapProps)
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle>Habit Completion Heatmap</CardTitle>
+            <CardTitle>Habit Completion Calendar</CardTitle>
             <CardDescription>
               Daily completion rates across all your habits
             </CardDescription>
@@ -358,8 +358,11 @@ export function HabitCompletionHeatmap({ habitId }: HabitCompletionHeatmapProps)
             </Button>
           </div>
           
-          <div className="text-sm text-muted-foreground text-center sm:text-right">
-            {perfectDays}/{totalDaysWithHabits} perfect days
+          <div className="text-sm text-center sm:text-right">
+            <span className="font-semibold text-green-600 dark:text-green-400">
+              {perfectDays}/{totalDaysWithHabits}
+            </span>
+            <span className="text-muted-foreground ml-1">perfect days</span>
           </div>
         </div>
       </CardHeader>

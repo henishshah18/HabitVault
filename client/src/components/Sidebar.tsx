@@ -49,9 +49,9 @@ export function Sidebar({ activeTab, onTabChange, onLogout }: SidebarProps) {
   ];
 
   return (
-    <div className="h-full flex flex-col bg-card">
+    <div className={`h-full flex flex-col bg-card transition-all duration-200 ${isMinimized ? 'w-16' : 'w-64'}`}>
       {/* Sidebar Header - matches main header height */}
-      <div className="h-16 px-4 border-b flex items-center justify-between">
+      <div className={`h-16 border-b flex items-center ${isMinimized ? 'justify-center px-2' : 'justify-between px-4'}`}>
         {!isMinimized && (
           <h2 className="font-semibold text-lg">Navigation</h2>
         )}
@@ -77,8 +77,8 @@ export function Sidebar({ activeTab, onTabChange, onLogout }: SidebarProps) {
                 key={item.id}
                 variant={isActive ? 'default' : 'ghost'}
                 onClick={() => onTabChange(item.id)}
-                className={`w-full justify-start transition-all duration-200 ${
-                  isMinimized ? 'px-2' : 'px-3'
+                className={`w-full transition-all duration-200 ${
+                  isMinimized ? 'justify-center px-2' : 'justify-start px-3'
                 } ${isActive ? 'bg-primary text-primary-foreground' : ''}`}
                 title={isMinimized ? item.label : undefined}
               >
@@ -91,24 +91,25 @@ export function Sidebar({ activeTab, onTabChange, onLogout }: SidebarProps) {
                     )}
                   </div>
                 )}
-
               </Button>
             );
           })}
+          
+          {/* Logout Button - moved up into navigation area */}
+          <div className="pt-4">
+            <Button
+              variant="outline"
+              onClick={onLogout}
+              className={`w-full transition-all duration-200 ${
+                isMinimized ? 'justify-center px-2' : 'justify-start px-3'
+              }`}
+              title={isMinimized ? 'Logout' : undefined}
+            >
+              <LogOut className={`w-4 h-4 ${isMinimized ? '' : 'mr-3'}`} />
+              {!isMinimized && <span>Logout</span>}
+            </Button>
+          </div>
         </nav>
-      </div>
-
-      {/* Logout Button */}
-      <div className="p-2 border-t">
-        <Button
-          variant="outline"
-          onClick={onLogout}
-          className={`w-full justify-start ${isMinimized ? 'px-2' : 'px-3'}`}
-          title={isMinimized ? 'Logout' : undefined}
-        >
-          <LogOut className={`w-4 h-4 ${isMinimized ? '' : 'mr-3'}`} />
-          {!isMinimized && <span>Logout</span>}
-        </Button>
       </div>
     </div>
   );

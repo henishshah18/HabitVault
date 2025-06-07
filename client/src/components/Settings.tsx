@@ -120,17 +120,6 @@ export function Settings() {
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <SettingsIcon className="w-5 h-5" />
-            <span>Settings</span>
-          </CardTitle>
-          <CardDescription>
-            Customize your HabitVault experience
-          </CardDescription>
-        </CardHeader>
-      </Card>
 
       {/* Appearance Settings */}
       <Card>
@@ -188,84 +177,35 @@ export function Settings() {
         </CardContent>
       </Card>
 
-      {/* Analytics View Settings */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <Calendar className="w-5 h-5" />
-            <span>Analytics Preferences</span>
-          </CardTitle>
-          <CardDescription>
-            Configure how analytics data is displayed
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <Label htmlFor="heatmap-view">Default Heatmap View</Label>
-              <p className="text-sm text-muted-foreground">
-                Choose the default view for habit history heatmaps
-              </p>
-            </div>
-            <Select
-              value={settings.analyticsTimeRange}
-              onValueChange={(value: 'week' | 'month') => updateSetting('analyticsTimeRange', value)}
-            >
-              <SelectTrigger className="w-32">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="week">Weekly</SelectItem>
-                <SelectItem value="month">Monthly</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
+
 
       {/* Save/Reset Actions */}
       {hasChanges && (
-        <Card className="border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-950/20">
-          <CardContent className="p-6">
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div className="text-center sm:text-left">
-                <p className="font-medium text-orange-800 dark:text-orange-200">
-                  You have unsaved changes
-                </p>
-                <p className="text-sm text-orange-600 dark:text-orange-300">
-                  Click Save to apply your new preferences
-                </p>
-              </div>
-              <div className="flex space-x-3">
-                <Button
-                  variant="outline"
-                  onClick={resetSettings}
-                  disabled={isSaving}
-                  className="border-orange-300 text-orange-700 hover:bg-orange-100 dark:border-orange-600 dark:text-orange-300"
-                >
-                  Reset
-                </Button>
-                <Button
-                  onClick={saveSettings}
-                  disabled={isSaving}
-                  className="bg-orange-600 hover:bg-orange-700 text-white"
-                >
-                  {isSaving ? (
-                    <>
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                      Saving...
-                    </>
-                  ) : (
-                    <>
-                      <Save className="w-4 h-4 mr-2" />
-                      Save Settings
-                    </>
-                  )}
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="flex justify-end space-x-3">
+          <Button
+            variant="outline"
+            onClick={resetSettings}
+            disabled={isSaving}
+          >
+            Reset
+          </Button>
+          <Button
+            onClick={saveSettings}
+            disabled={isSaving}
+          >
+            {isSaving ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                Saving...
+              </>
+            ) : (
+              <>
+                <Save className="w-4 h-4 mr-2" />
+                Save Settings
+              </>
+            )}
+          </Button>
+        </div>
       )}
 
       {/* Success indicator when no changes */}

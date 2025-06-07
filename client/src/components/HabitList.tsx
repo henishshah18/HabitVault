@@ -5,7 +5,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { Edit, Trash2, Plus, Calendar, Target } from 'lucide-react';
-import { HabitForm } from './HabitForm';
+import { HabitForm } from '@/components/HabitForm';
 
 interface Habit {
   id: number;

@@ -119,64 +119,107 @@ export function Dashboard({ onLogout }: DashboardProps) {
   }
 
   return (
-    <div className="w-full max-w-2xl mx-auto space-y-6">
+    <div className="w-full max-w-6xl mx-auto space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Dashboard</CardTitle>
-          <CardDescription>
-            Welcome to your secure dashboard
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {error && (
-            <Alert variant="destructive">
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
-          
-          {user && (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-lg font-semibold">User Information</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Your account details
-                  </p>
-                </div>
-                <Badge variant="secondary">Authenticated</Badge>
-              </div>
-              
-              <div className="grid grid-cols-1 gap-4">
-                <div>
-                  <label className="text-sm font-medium">User ID</label>
-                  <p className="text-sm text-muted-foreground">{user.id}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium">Email</label>
-                  <p className="text-sm text-muted-foreground">{user.email}</p>
-                </div>
-              </div>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center space-x-2">
+                <Target className="w-5 h-5" />
+                <span>Habit Tracker Dashboard</span>
+              </CardTitle>
+              <CardDescription>
+                Track your daily habits and build better routines
+              </CardDescription>
             </div>
-          )}
-          
-          <div className="flex flex-col sm:flex-row gap-4">
-            <Button 
-              onClick={testProtectedEndpoint}
-              variant="outline"
-              className="flex-1"
-            >
-              Test Protected Endpoint
-            </Button>
-            <Button 
-              onClick={handleLogout}
-              variant="destructive"
-              className="flex-1"
-            >
-              Logout
-            </Button>
+            <div className="flex items-center space-x-3">
+              {user && <Badge variant="secondary">Welcome, {user.email}</Badge>}
+              <Button onClick={handleLogout} variant="outline" size="sm">
+                Logout
+              </Button>
+            </div>
           </div>
-        </CardContent>
+        </CardHeader>
       </Card>
+
+      {error && (
+        <Alert variant="destructive">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+
+      <Tabs defaultValue="habits" className="w-full">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="habits" className="flex items-center space-x-2">
+            <Target className="w-4 h-4" />
+            <span>My Habits</span>
+          </TabsTrigger>
+          <TabsTrigger value="profile" className="flex items-center space-x-2">
+            <UserIcon className="w-4 h-4" />
+            <span>Profile</span>
+          </TabsTrigger>
+          <TabsTrigger value="analytics" className="flex items-center space-x-2">
+            <BarChart3 className="w-4 h-4" />
+            <span>Analytics</span>
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="habits" className="mt-6">
+          <HabitList onLogout={onLogout} />
+        </TabsContent>
+
+        <TabsContent value="profile" className="mt-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Profile Information</CardTitle>
+              <CardDescription>
+                Your account details and settings
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {user && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium">User ID</label>
+                    <p className="text-sm text-muted-foreground">{user.id}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium">Email</label>
+                    <p className="text-sm text-muted-foreground">{user.email}</p>
+                  </div>
+                </div>
+              )}
+              
+              <div className="pt-4">
+                <Button 
+                  onClick={testProtectedEndpoint}
+                  variant="outline"
+                >
+                  Test API Connection
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="analytics" className="mt-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Habit Analytics</CardTitle>
+              <CardDescription>
+                Track your progress and insights (Coming Soon)
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="text-center py-8 text-muted-foreground">
+                <BarChart3 className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                <h3 className="text-lg font-semibold mb-2">Analytics Coming Soon</h3>
+                <p>We're working on detailed analytics to help you track your habit progress.</p>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

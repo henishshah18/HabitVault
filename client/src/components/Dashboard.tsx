@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { Sidebar } from './Sidebar';
 import { DailyCheckin } from './DailyCheckin';
@@ -10,7 +8,7 @@ import { ManageHabits } from './ManageHabits';
 import { AnalyticsDashboard } from './AnalyticsDashboard';
 import { Settings } from './Settings';
 import { MotivationalQuote } from './MotivationalQuote';
-import { User as UserIcon, Vault, Heart } from 'lucide-react';
+import { User as UserIcon, Vault } from 'lucide-react';
 
 interface User {
   id: number;
@@ -41,25 +39,25 @@ export function Dashboard({ onLogout }: DashboardProps) {
         const response = await fetch('/api/protected', {
           method: 'GET',
           headers: {
-            'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
           },
         });
 
-        const data = await response.json();
-
         if (response.ok) {
+          const data = await response.json();
           setUser(data.user);
         } else {
-          setError(data.error || 'Failed to fetch user data');
           if (response.status === 401) {
             localStorage.removeItem('authToken');
             localStorage.removeItem('userId');
             onLogout();
+            return;
           }
+          setError('Failed to load user data');
         }
       } catch (err) {
-        setError('Network error. Please try again.');
+        setError('Network error occurred');
       } finally {
         setIsLoading(false);
       }
@@ -71,160 +69,101 @@ export function Dashboard({ onLogout }: DashboardProps) {
   const handleLogout = () => {
     localStorage.removeItem('authToken');
     localStorage.removeItem('userId');
-    toast({
-      title: 'Logged out',
-      description: 'You have been successfully logged out.',
-    });
     onLogout();
   };
 
-  const testProtectedEndpoint = async () => {
-    const token = localStorage.getItem('authToken');
-    
-    try {
-      const response = await fetch('/api/protected', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        toast({
-          title: 'Protected endpoint accessed',
-          description: 'JWT authentication is working correctly!',
-        });
-      } else {
-        toast({
-          title: 'Access denied',
-          description: data.error || 'Failed to access protected endpoint',
-          variant: 'destructive',
-        });
-      }
-    } catch (err) {
-      toast({
-        title: 'Error',
-        description: 'Network error accessing protected endpoint',
-        variant: 'destructive',
-      });
+  const renderActiveContent = () => {
+    switch (activeTab) {
+      case 'daily-checkin':
+        return <DailyCheckin onLogout={onLogout} />;
+      case 'manage-habits':
+        return <ManageHabits onLogout={onLogout} />;
+      case 'analytics':
+        return <AnalyticsDashboard />;
+      case 'settings':
+        return <Settings />;
+      default:
+        return <DailyCheckin onLogout={onLogout} />;
     }
   };
 
   if (isLoading) {
     return (
-      <Card className="w-full max-w-md mx-auto">
-        <CardContent className="pt-6">
-          <div className="text-center">Loading...</div>
-        </CardContent>
-      </Card>
+      <div className="flex h-screen">
+        <div className="flex-1 flex items-center justify-center">
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-center">Loading...</div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     );
   }
 
   return (
-    <div className="w-full max-w-6xl mx-auto space-y-6">
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="flex items-center space-x-2">
-                <Target className="w-5 h-5" />
-                <span>Habit Tracker Dashboard</span>
-              </CardTitle>
-              <CardDescription>
-                Track your daily habits and build better routines
-              </CardDescription>
-            </div>
+    <div className="flex h-screen bg-background">
+      {/* Sidebar */}
+      <div className="flex-shrink-0">
+        <Sidebar 
+          activeTab={activeTab} 
+          onTabChange={setActiveTab} 
+          onLogout={handleLogout} 
+        />
+      </div>
+
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Header */}
+        <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          <div className="flex items-center justify-between px-6 py-4">
+            {/* App Logo/Name */}
             <div className="flex items-center space-x-3">
-              {user && <Badge variant="secondary">Welcome, {user.email}</Badge>}
-              <Button onClick={handleLogout} variant="outline" size="sm">
-                Logout
-              </Button>
+              <div className="flex items-center space-x-2">
+                <Vault className="w-8 h-8 text-primary" />
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
+                  HabitVault
+                </h1>
+              </div>
             </div>
-          </div>
-        </CardHeader>
-      </Card>
 
-      {error && (
-        <Alert variant="destructive">
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
-
-      <Tabs defaultValue="habits" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="habits" className="flex items-center space-x-2">
-            <Target className="w-4 h-4" />
-            <span>My Habits</span>
-          </TabsTrigger>
-          <TabsTrigger value="profile" className="flex items-center space-x-2">
-            <UserIcon className="w-4 h-4" />
-            <span>Profile</span>
-          </TabsTrigger>
-          <TabsTrigger value="analytics" className="flex items-center space-x-2">
-            <BarChart3 className="w-4 h-4" />
-            <span>Analytics</span>
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="habits" className="mt-6">
-          <HabitList onLogout={onLogout} />
-        </TabsContent>
-
-        <TabsContent value="profile" className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Profile Information</CardTitle>
-              <CardDescription>
-                Your account details and settings
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
+            {/* User Info */}
+            <div className="flex items-center space-x-3">
               {user && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-sm font-medium">User ID</label>
-                    <p className="text-sm text-muted-foreground">{user.id}</p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium">Email</label>
-                    <p className="text-sm text-muted-foreground">{user.email}</p>
-                  </div>
+                <div className="flex items-center space-x-2">
+                  <UserIcon className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-sm text-muted-foreground">
+                    Welcome, {user.email.split('@')[0]}!
+                  </span>
                 </div>
               )}
-              
-              <div className="pt-4">
-                <Button 
-                  onClick={testProtectedEndpoint}
-                  variant="outline"
-                >
-                  Test API Connection
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+            </div>
+          </div>
+        </header>
 
-        <TabsContent value="analytics" className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Habit Analytics</CardTitle>
-              <CardDescription>
-                Track your progress and insights (Coming Soon)
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8 text-muted-foreground">
-                <BarChart3 className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                <h3 className="text-lg font-semibold mb-2">Analytics Coming Soon</h3>
-                <p>We're working on detailed analytics to help you track your habit progress.</p>
+        {/* Main Content */}
+        <main className="flex-1 overflow-auto">
+          <div className="container mx-auto px-6 py-6 space-y-6">
+            {error && (
+              <Alert variant="destructive">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+
+            {/* Motivational Quote - Only show on Daily Check-in */}
+            {activeTab === 'daily-checkin' && (
+              <div className="flex justify-center">
+                <div className="w-full max-w-2xl">
+                  <MotivationalQuote />
+                </div>
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+            )}
+
+            {/* Active Content */}
+            {renderActiveContent()}
+          </div>
+        </main>
+      </div>
     </div>
   );
 }

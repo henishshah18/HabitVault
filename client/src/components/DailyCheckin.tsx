@@ -156,6 +156,13 @@ export function DailyCheckin({ onLogout, onNewHabit }: DailyCheckinProps) {
         const newCompletedToday = newTodaysHabits.filter(habit => habit.is_completed_today);
         const willBeAllComplete = newTodaysHabits.length > 0 && newCompletedToday.length === newTodaysHabits.length;
         
+        // Dispatch events for calendar updates
+        if (!isCompleted) {
+          window.dispatchEvent(new CustomEvent('habitCompleted', { detail: { habitId } }));
+        } else {
+          window.dispatchEvent(new CustomEvent('habitUncompleted', { detail: { habitId } }));
+        }
+        
         // Dispatch event to update analytics dashboard with real-time data
         window.dispatchEvent(new CustomEvent('habitCompletionChanged', {
           detail: { habitId, isCompleted: !isCompleted, habits: updatedHabits }

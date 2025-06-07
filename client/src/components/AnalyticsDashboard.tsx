@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { BarChart3, TrendingUp, Calendar, Target } from 'lucide-react';
-import { HabitCompletionHeatmap } from './HabitCompletionHeatmap';
+import { HabitCalendar } from './HabitCalendar';
 
 interface Habit {
   id: number;
@@ -178,7 +178,7 @@ export function AnalyticsDashboard() {
           </CardContent>
         </Card>
       ) : (
-        <HabitCompletionHeatmap />
+        <HabitCalendar habits={habits} onDataUpdate={() => fetchHabits()} />
       )}
     </div>
   );

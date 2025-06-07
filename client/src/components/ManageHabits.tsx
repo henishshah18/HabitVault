@@ -240,11 +240,6 @@ export function ManageHabits({ onLogout }: ManageHabitsProps) {
                       <Badge variant={getTargetDaysVariant(habit.target_days)}>
                         {getTargetDaysDisplay(habit.target_days)}
                       </Badge>
-                      {habit.is_due_today && (
-                        <Badge variant="outline" className="text-blue-600">
-                          Due Today
-                        </Badge>
-                      )}
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-3">
@@ -253,7 +248,7 @@ export function ManageHabits({ onLogout }: ManageHabitsProps) {
                       <span>Started: {new Date(habit.start_date).toLocaleDateString()}</span>
                     </div>
                     
-                    <div className="flex items-center justify-between">
+                    <div className="space-y-2">
                       <div className="flex items-center space-x-2">
                         <Flame className="w-4 h-4 text-orange-500" />
                         <span className="text-sm font-medium">{habit.current_streak} days</span>

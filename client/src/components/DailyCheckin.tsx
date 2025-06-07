@@ -154,7 +154,10 @@ export function DailyCheckin({ onLogout, onNewHabit }: DailyCheckinProps) {
         const newCompletedToday = newTodaysHabits.filter(habit => habit.is_completed_today);
         const willBeAllComplete = newTodaysHabits.length > 0 && newCompletedToday.length === newTodaysHabits.length;
         
-        // Perfect day completion logic removed - milestone progress card was removed
+        // Dispatch event to update analytics dashboard with real-time data
+        window.dispatchEvent(new CustomEvent('habitCompletionChanged', {
+          detail: { habitId, isCompleted: !isCompleted, habits: updatedHabits }
+        }));
         
         toast({
           title: 'Success',
@@ -261,8 +264,8 @@ export function DailyCheckin({ onLogout, onNewHabit }: DailyCheckinProps) {
                     key={habit.id} 
                     className={`relative transition-all duration-200 ${
                       isCompleted 
-                        ? 'border-green-500 bg-green-50 dark:bg-green-900/20' 
-                        : 'border-yellow-500 bg-yellow-50 dark:bg-yellow-900/20'
+                        ? 'border-t-4 border-t-green-500' 
+                        : 'border-t-4 border-t-yellow-500'
                     }`}
                   >
                     <CardHeader className="pb-3">
@@ -285,7 +288,7 @@ export function DailyCheckin({ onLogout, onNewHabit }: DailyCheckinProps) {
                       </div>
                     </CardHeader>
                     <CardContent>
-                      <div className="flex items-center justify-between">
+                      <div className="space-y-2">
                         <div className="flex items-center space-x-2">
                           <Flame className="w-4 h-4 text-orange-500" />
                           <span className="text-sm font-medium">{habit.current_streak} days</span>

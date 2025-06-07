@@ -290,9 +290,9 @@ export function DailyCheckin({ onLogout, onNewHabit }: DailyCheckinProps) {
               })}
             </div>
             <div className="mt-6 flex justify-end">
-              <Button onClick={onNewHabit} className="flex items-center space-x-2">
+              <Button onClick={() => setShowHabitForm(true)} className="flex items-center space-x-2">
                 <Plus className="w-4 h-4" />
-                <span>New Habit</span>
+                <span>Add New Habit</span>
               </Button>
             </div>
           </CardContent>
@@ -301,16 +301,32 @@ export function DailyCheckin({ onLogout, onNewHabit }: DailyCheckinProps) {
         <Card>
           <CardContent className="text-center py-12">
             <Target className="w-16 h-16 mx-auto mb-4 opacity-50" />
-            <h3 className="text-xl font-semibold mb-2">No habits scheduled for today</h3>
+            <h3 className="text-xl font-semibold mb-2">No targets scheduled for today</h3>
             <p className="text-muted-foreground mb-6">
               Start building better habits by adding your first one!
             </p>
-            <Button onClick={onNewHabit} className="flex items-center space-x-2">
+            <Button onClick={() => setShowHabitForm(true)} className="flex items-center space-x-2">
               <Plus className="w-4 h-4" />
               <span>Add Your First Habit</span>
             </Button>
           </CardContent>
         </Card>
+      )}
+
+      {/* Inline Habit Creation Form */}
+      {showHabitForm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4">
+            <HabitForm
+              onSuccess={(newHabit) => {
+                setHabits(prev => [...prev, newHabit]);
+                setShowHabitForm(false);
+                fetchHabits(); // Refresh to get updated data
+              }}
+              onCancel={() => setShowHabitForm(false)}
+            />
+          </div>
+        </div>
       )}
     </div>
   );

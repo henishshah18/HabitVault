@@ -260,10 +260,13 @@ def create_app():
             if 'start_date' not in data or not data['start_date']:
                 return jsonify({'error': 'Start date is required'}), 400
             
-            # Validate target_days
+            # Validate target_days (allow custom comma-separated days)
             valid_target_days = ['every_day', 'weekdays', 'custom']
-            if data['target_days'] not in valid_target_days:
-                return jsonify({'error': f'Target days must be one of: {", ".join(valid_target_days)}'}), 400
+            target_days = data['target_days']
+            
+            # Check if it's a valid predefined option or comma-separated custom days
+            if target_days not in valid_target_days and ',' not in target_days:
+                return jsonify({'error': f'Target days must be one of: {", ".join(valid_target_days)} or comma-separated days'}), 400
             
             # Parse start_date
             try:
@@ -275,7 +278,7 @@ def create_app():
             habit = Habit(
                 user_id=current_user_id,
                 name=data['name'].strip(),
-                target_days=data['target_days'],
+                target_days=target_days,
                 start_date=start_date
             )
             

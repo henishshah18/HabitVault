@@ -58,6 +58,82 @@ def initialize_database():
         print(f"Error initializing database: {e}")
         db.session.rollback()
 
+def calculate_current_streak(habit):
+    """Calculate current streak by checking consecutive completions backward from today"""
+    from datetime import date, timedelta
+    
+    # Start from today and go backward
+    current_date = date.today()
+    streak = 0
+    
+    while True:
+        # Check if habit was due on this date
+        if not is_habit_due_on_date(habit, current_date):
+            # If habit wasn't due, move to previous day without breaking streak
+            current_date -= timedelta(days=1)
+            continue
+        
+        # Check if habit was completed on this date
+        completion = HabitCompletion.query.filter_by(
+            habit_id=habit.id,
+            completion_date=current_date
+        ).first()
+        
+        if completion:
+            streak += 1
+            current_date -= timedelta(days=1)
+        else:
+            # Streak is broken
+            break
+            
+        # Safety check to avoid infinite loops (limit to 1000 days)
+        if streak > 1000:
+            break
+    
+    return streak
+
+def is_habit_due_on_date(habit, check_date):
+    """Check if a habit is due on a specific date based on target_days and start_date"""
+    from datetime import date
+    
+    # Check if the date is on or after the habit start date
+    if check_date < habit.start_date:
+        return False
+    
+    # Get day of week (0=Monday, 6=Sunday in our backend format)
+    day_of_week = check_date.weekday()
+    
+    if habit.target_days == 'every_day':
+        return True
+    elif habit.target_days == 'weekdays':
+        return day_of_week < 5  # Monday to Friday
+    else:
+        # Handle custom days like "monday,wednesday,friday"
+        weekday_names = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
+        today_name = weekday_names[day_of_week]
+        
+        if ',' in habit.target_days:
+            selected_days = [day.strip().lower() for day in habit.target_days.split(',')]
+            return today_name in selected_days
+        else:
+            return habit.target_days.lower() == today_name
+
+def recalculate_all_streaks():
+    """Recalculate current streaks for all habits"""
+    try:
+        habits = Habit.query.all()
+        for habit in habits:
+            old_streak = habit.current_streak
+            new_streak = calculate_current_streak(habit)
+            if old_streak != new_streak:
+                habit.current_streak = new_streak
+                print(f"Updated habit '{habit.name}' streak from {old_streak} to {new_streak}")
+        db.session.commit()
+        print(f"Recalculated streaks for {len(habits)} habits")
+    except Exception as e:
+        print(f"Error recalculating streaks: {e}")
+        db.session.rollback()
+
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
@@ -76,6 +152,7 @@ def create_app():
     with app.app_context():
         db.create_all()
         # initialize_database()  # Commented out to preserve cleaned data
+        recalculate_all_streaks()
     
     # Helper function to update perfect day status
     def update_perfect_day_status(user_id, today):
@@ -447,8 +524,8 @@ def create_app():
             completion = HabitCompletion(habit_id=habit_id, completion_date=today)
             db.session.add(completion)
             
-            # Update streaks
-            habit.current_streak += 1
+            # Calculate current streak properly
+            habit.current_streak = calculate_current_streak(habit)
             if habit.current_streak > habit.longest_streak:
                 habit.longest_streak = habit.current_streak
             
@@ -503,8 +580,8 @@ def create_app():
             # Remove completion record
             db.session.delete(completion)
             
-            # Reset current streak (simple approach - can be enhanced)
-            habit.current_streak = max(0, habit.current_streak - 1)
+            # Recalculate current streak properly
+            habit.current_streak = calculate_current_streak(habit)
             
             # Update perfect day tracking after uncompleting habit
             update_perfect_day_status(current_user_id, today)

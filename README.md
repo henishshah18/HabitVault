@@ -8,7 +8,6 @@ A modern, full-stack habit tracking application designed to help users build and
 - ✅ Track daily completions and streaks
 - 📊 Visual progress tracking and analytics
 - 🎯 Custom scheduling (daily, weekdays, or specific days)
-- 🏆 Achievement milestones and perfect day tracking
 - 🌓 Dark/Light mode support
 - 📱 Responsive design for all devices
 

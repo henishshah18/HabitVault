@@ -201,8 +201,8 @@ class Habit(db.Model):
             habit_id=self.id,
             completion_date=today
         ).first()
-        # Return naive timestamp without 'Z' since we store local time
-        return completion.completed_at.isoformat() if completion else None
+        # Return UTC timestamp with 'Z' suffix for consistent parsing
+        return completion.completed_at.isoformat() + 'Z' if completion else None
 
     def to_dict(self):
         completion_timestamp = self.get_completion_timestamp_today()

@@ -586,15 +586,14 @@ def create_app():
             if existing_completion:
                 return jsonify({'error': 'Habit already completed today'}), 409
             
-            # Store the local timestamp exactly as received from frontend
+            # Store UTC timestamp for consistent timezone handling
             local_timestamp = data.get('local_timestamp')
             print(f"DEBUG: Received local_timestamp from frontend: {local_timestamp}")
             
             if local_timestamp:
-                # Parse the ISO timestamp and create a naive datetime representing the user's local time
-                # Remove 'Z' to treat it as naive (local) time instead of UTC
-                completion_time = datetime.fromisoformat(local_timestamp.rstrip('Z'))
-                print(f"DEBUG: Storing as naive local time: {completion_time}")
+                # Parse the ISO timestamp as UTC (frontend sends local time as UTC)
+                completion_time = datetime.fromisoformat(local_timestamp.replace('Z', '+00:00'))
+                print(f"DEBUG: Storing UTC completion_time: {completion_time}")
             else:
                 completion_time = datetime.utcnow()
                 print(f"DEBUG: No local timestamp, using UTC: {completion_time}")

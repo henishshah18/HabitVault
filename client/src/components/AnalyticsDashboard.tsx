@@ -25,6 +25,7 @@ export function AnalyticsDashboard() {
   const [timeRange, setTimeRange] = useState<'week' | 'month'>('month');
   const [userId, setUserId] = useState<number | null>(null);
   const [perfectDayRate, setPerfectDayRate] = useState<number>(0);
+  const [loadingPerfectRate, setLoadingPerfectRate] = useState(true);
 
   useEffect(() => {
     // Initialize user preferences
@@ -87,8 +88,11 @@ export function AnalyticsDashboard() {
   };
 
   const calculatePerfectDayRate = async (habitsData: Habit[], token: string) => {
+    setLoadingPerfectRate(true);
+    
     if (habitsData.length === 0) {
       setPerfectDayRate(0);
+      setLoadingPerfectRate(false);
       return;
     }
 
@@ -163,6 +167,8 @@ export function AnalyticsDashboard() {
     } catch (error) {
       console.error('Failed to calculate perfect day rate:', error);
       setPerfectDayRate(0);
+    } finally {
+      setLoadingPerfectRate(false);
     }
   };
 
@@ -227,7 +233,7 @@ export function AnalyticsDashboard() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
+        <Card className={`transition-opacity duration-500 ${loading ? 'opacity-60' : 'opacity-100'}`}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
               Total Habits
@@ -242,7 +248,7 @@ export function AnalyticsDashboard() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className={`transition-opacity duration-500 ${loading ? 'opacity-60' : 'opacity-100'}`}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
               Average Streak
@@ -257,7 +263,7 @@ export function AnalyticsDashboard() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className={`transition-opacity duration-500 ${loadingPerfectRate ? 'opacity-60' : 'opacity-100'}`}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
               Completion Rate
@@ -272,7 +278,7 @@ export function AnalyticsDashboard() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className={`transition-opacity duration-500 ${loading ? 'opacity-60' : 'opacity-100'}`}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
               Longest Streak
@@ -288,15 +294,7 @@ export function AnalyticsDashboard() {
         </Card>
       </div>
 
-      {loading ? (
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-center py-8">
-              <div className="w-6 h-6 border-2 border-blue-300 border-t-blue-600 rounded-full animate-spin" />
-            </div>
-          </CardContent>
-        </Card>
-      ) : habits.length === 0 ? (
+      {habits.length === 0 && !loading ? (
         <Card>
           <CardContent className="text-center py-12">
             <BarChart3 className="w-16 h-16 mx-auto mb-4 opacity-50" />
@@ -307,7 +305,9 @@ export function AnalyticsDashboard() {
           </CardContent>
         </Card>
       ) : (
-        <HabitCalendar habits={habits} onDataUpdate={() => fetchHabits()} />
+        <div className={`transition-opacity duration-500 ${loading ? 'opacity-60' : 'opacity-100'}`}>
+          <HabitCalendar habits={habits} onDataUpdate={() => fetchHabits()} />
+        </div>
       )}
     </div>
   );

@@ -166,6 +166,10 @@ export function DailyCheckin({ onLogout, onNewHabit }: DailyCheckinProps) {
       const data = await response.json();
 
       if (response.ok) {
+        // DEBUG: Log the timestamp from server response
+        console.log('Server response for habit completion:', data.habit);
+        console.log('Server completion_timestamp:', data.habit.completion_timestamp);
+        
         // Small delay to show loading effect
         setTimeout(() => {
           // Update with server response but preserve is_due_today status

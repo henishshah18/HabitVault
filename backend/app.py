@@ -531,6 +531,18 @@ def create_app():
         try:
             current_user_id = int(get_jwt_identity())
             
+            # Get timezone-aware date from frontend or use server date as fallback
+            data = request.get_json() or {}
+            local_date_str = data.get('local_date')
+            
+            if local_date_str:
+                try:
+                    today = datetime.strptime(local_date_str, '%Y-%m-%d').date()
+                except ValueError:
+                    today = date.today()
+            else:
+                today = date.today()
+            
             # Find habit belonging to current user
             habit = Habit.query.filter_by(id=habit_id, user_id=current_user_id).first()
             
@@ -538,7 +550,6 @@ def create_app():
                 return jsonify({'error': 'Habit not found or access denied'}), 404
             
             # Check if already completed today
-            today = date.today()
             existing_completion = HabitCompletion.query.filter_by(
                 habit_id=habit_id,
                 completion_date=today

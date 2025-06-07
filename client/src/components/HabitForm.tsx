@@ -7,6 +7,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
+import { getTodayLocalDate, getMinDateForPicker, formatDateForForm } from '@/lib/timeUtils';
 import { ArrowLeft, Save, X } from 'lucide-react';
 
 /**
@@ -113,9 +114,8 @@ export function HabitForm({ habit, onSuccess, onCancel }: HabitFormProps) {
         setCustomDays([]);
       }
     } else {
-      // Set default start date to today
-      const today = new Date().toISOString().split('T')[0];
-      setStartDate(today);
+      // Set default start date to today in local timezone
+      setStartDate(getTodayLocalDate());
     }
   }, [habit]);
 
@@ -270,9 +270,13 @@ export function HabitForm({ habit, onSuccess, onCancel }: HabitFormProps) {
               type="date"
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
+              min={getMinDateForPicker()}
               required
               disabled={isLoading}
             />
+            <p className="text-xs text-muted-foreground">
+              Start date must be today or later (in your local timezone)
+            </p>
           </div>
         </CardContent>
         

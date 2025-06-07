@@ -9,7 +9,7 @@ import { ProgressCircle } from './ProgressCircle';
 
 import { HabitForm } from './HabitForm';
 import { Flame, Trophy, CheckCircle2, Target, Plus, Clock } from 'lucide-react';
-import { formatCompletionTime } from '@/lib/timeUtils';
+import { formatCompletionTime, getTodayLocalDate, formatTimestampWithContext } from '@/lib/timeUtils';
 
 interface Habit {
   id: number;

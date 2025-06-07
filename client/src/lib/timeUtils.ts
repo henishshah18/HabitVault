@@ -81,3 +81,47 @@ export const formatTimestampWithContext = (timestamp: string): string => {
     return `${formatDateToLocal(timestamp, { month: 'short', day: 'numeric' })} at ${formatCompletionTime(timestamp)}`;
   }
 };
+
+/**
+ * Get today's date in local timezone as YYYY-MM-DD format
+ */
+export const getTodayLocalDate = (): string => {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, '0');
+  const day = String(today.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+/**
+ * Get minimum date for date picker (today in local timezone)
+ */
+export const getMinDateForPicker = (): string => {
+  return getTodayLocalDate();
+};
+
+/**
+ * Convert date string to local timezone date object
+ */
+export const parseLocalDate = (dateString: string): Date => {
+  const [year, month, day] = dateString.split('-').map(Number);
+  return new Date(year, month - 1, day);
+};
+
+/**
+ * Check if a date string represents today in local timezone
+ */
+export const isToday = (dateString: string): boolean => {
+  return dateString === getTodayLocalDate();
+};
+
+/**
+ * Format date for habit form default value (local timezone)
+ */
+export const formatDateForForm = (date?: Date): string => {
+  const targetDate = date || new Date();
+  const year = targetDate.getFullYear();
+  const month = String(targetDate.getMonth() + 1).padStart(2, '0');
+  const day = String(targetDate.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};

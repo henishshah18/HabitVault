@@ -117,6 +117,16 @@ export function HabitCalendar({ habits: externalHabits, onDataUpdate }: HabitCal
 
   // Check if a habit is due on a specific date
   const isHabitDueOnDate = (habit: Habit, date: Date): boolean => {
+    const today = new Date();
+    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+    
+    // For today, use the backend's is_due_today value for consistency
+    if (dateStr === todayStr) {
+      return habit.is_due_today;
+    }
+    
+    // For historical dates, use the original logic
     const habitStartDate = new Date(habit.start_date);
     if (date < habitStartDate) return false;
 

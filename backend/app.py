@@ -2,7 +2,26 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 from backend.models import db, User
 from backend.config import Config
+from werkzeug.security import generate_password_hash
 import os
+
+def initialize_database():
+    """Initialize database and create test user if not exists"""
+    try:
+        # Check if test user exists
+        test_user = User.query.filter_by(email='test@example.com').first()
+        if not test_user:
+            # Create test user with hashed password
+            password_hash = generate_password_hash('password')
+            test_user = User(email='test@example.com', password_hash=password_hash)
+            db.session.add(test_user)
+            db.session.commit()
+            print("Test user created successfully")
+        else:
+            print("Test user already exists")
+    except Exception as e:
+        print(f"Error initializing database: {e}")
+        db.session.rollback()
 
 def create_app():
     app = Flask(__name__)
@@ -12,9 +31,10 @@ def create_app():
     db.init_app(app)
     CORS(app, origins=app.config['CORS_ORIGINS'])
     
-    # Create tables
+    # Initialize database and create tables
     with app.app_context():
         db.create_all()
+        initialize_database()
     
     # Routes
     @app.route('/api/hello', methods=['GET'])
@@ -74,22 +94,18 @@ def create_app():
         try:
             data = request.get_json()
             
-            if not data or 'username' not in data or 'email' not in data:
-                return jsonify({'error': 'Username and email are required'}), 400
+            if not data or 'email' not in data or 'password' not in data:
+                return jsonify({'error': 'Email and password are required'}), 400
             
             # Check if user already exists
-            existing_user = User.query.filter(
-                (User.username == data['username']) | 
-                (User.email == data['email'])
-            ).first()
+            existing_user = User.query.filter_by(email=data['email']).first()
             
             if existing_user:
-                return jsonify({'error': 'User with this username or email already exists'}), 409
+                return jsonify({'error': 'User with this email already exists'}), 409
             
-            user = User(
-                username=data['username'],
-                email=data['email']
-            )
+            # Hash the password
+            password_hash = generate_password_hash(data['password'])
+            user = User(email=data['email'], password_hash=password_hash)
             
             db.session.add(user)
             db.session.commit()

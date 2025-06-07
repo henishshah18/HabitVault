@@ -121,16 +121,26 @@ export function HabitCalendar({ habits: externalHabits, onDataUpdate }: HabitCal
     if (date < habitStartDate) return false;
 
     const dayOfWeek = date.getDay(); // 0 = Sunday, 1 = Monday, etc.
+    // Convert to backend format: 0=Monday, 6=Sunday
+    const backendDayOfWeek = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
     
-    switch (habit.target_days) {
-      case 'every_day':
-        return true;
-      case 'weekdays':
-        return dayOfWeek >= 1 && dayOfWeek <= 5; // Monday to Friday
-      case 'custom':
-        return true; // For now, assume custom means every day
-      default:
-        return true;
+    if (habit.target_days === 'every_day') {
+      return true;
+    } else if (habit.target_days === 'weekdays') {
+      return backendDayOfWeek < 5; // Monday to Friday
+    } else {
+      // Handle custom days like "monday,wednesday,friday"
+      if (habit.target_days.includes(',')) {
+        const weekdayNames = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+        const selectedDays = habit.target_days.split(',').map(day => day.trim().toLowerCase());
+        const todayName = weekdayNames[backendDayOfWeek];
+        return selectedDays.includes(todayName);
+      }
+      
+      // For single custom day
+      const weekdayNames = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+      const todayName = weekdayNames[backendDayOfWeek];
+      return habit.target_days.toLowerCase() === todayName;
     }
   };
 

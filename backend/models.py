@@ -121,8 +121,18 @@ class Habit(db.Model):
             return True
         elif self.target_days == 'weekdays':
             return weekday < 5  # Monday to Friday
-        # For custom, assume it's always due (can be enhanced later)
-        return True
+        else:
+            # Handle custom days like "monday,wednesday,friday"
+            if ',' in self.target_days:
+                weekday_names = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
+                selected_days = [day.strip().lower() for day in self.target_days.split(',')]
+                today_name = weekday_names[weekday]
+                return today_name in selected_days
+            
+            # For single custom day
+            weekday_names = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
+            today_name = weekday_names[weekday]
+            return self.target_days.lower() == today_name
     
     def is_completed_today(self):
         """Check if habit is completed today"""

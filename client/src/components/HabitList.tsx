@@ -27,6 +27,29 @@ interface HabitListProps {
   onLogout: () => void;
 }
 
+/**
+ * HabitList Component
+ * 
+ * Displays a list of user's habits with interactive features for tracking and management.
+ * Provides real-time updates and interactions for habit completion and streak tracking.
+ * 
+ * Features:
+ * - Interactive habit completion toggles
+ * - Streak tracking and display
+ * - Progress indicators
+ * - Sorting and filtering options
+ * - Responsive design for various screen sizes
+ */
+
+/**
+ * Interface for the HabitList component props
+ * @interface HabitListProps
+ * @property {boolean} [compact] - Whether to show the compact version of the list
+ * @property {() => void} [onHabitUpdate] - Callback when a habit is updated
+ * @property {(habit: Habit) => void} [onEditHabit] - Callback to edit a habit
+ * @property {(habitId: number) => void} [onDeleteHabit] - Callback to delete a habit
+ */
+
 export function HabitList({ onLogout }: HabitListProps) {
   const [habits, setHabits] = useState<Habit[]>([]);
   const [isLoading, setIsLoading] = useState(true);

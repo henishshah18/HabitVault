@@ -5,7 +5,36 @@ import json
 
 db = SQLAlchemy()
 
+"""
+Database Models Module
+
+This module defines the SQLAlchemy models for the habit tracking application.
+It includes models for Users, Habits, and Habit Completions, along with their
+relationships and business logic.
+
+Models:
+- User: Manages user accounts and perfect day tracking
+- Habit: Defines habit properties and completion rules
+- HabitCompletion: Tracks individual habit completions
+
+The models use SQLAlchemy for ORM functionality and include methods for
+serialization, validation, and business logic implementation.
+"""
+
 class User(db.Model):
+    """
+    User Model
+    
+    Represents a user in the system with their habits and achievement tracking.
+    
+    Attributes:
+        id (int): Primary key
+        email (str): User's email address (unique)
+        password_hash (str): Hashed password
+        perfect_days_count (int): Number of days all habits were completed
+        perfect_days_dates (str): JSON string of perfect day dates
+        habits (relationship): One-to-many relationship with Habit model
+    """
     __tablename__ = 'users'
     
     id = db.Column(db.Integer, primary_key=True)
@@ -89,6 +118,23 @@ class User(db.Model):
         return f'<User {self.email}>'
 
 class Habit(db.Model):
+    """
+    Habit Model
+    
+    Represents a habit that a user wants to track. Includes scheduling logic
+    and completion tracking.
+    
+    Attributes:
+        id (int): Primary key
+        unique_id (str): UUID for the habit
+        user_id (int): Foreign key to User model
+        name (str): Habit name/description
+        target_days (str): Schedule pattern ('every_day', 'weekdays', or custom)
+        start_date (date): Date when habit tracking begins
+        current_streak (int): Current consecutive completion streak
+        longest_streak (int): Longest achieved streak
+        completions (relationship): One-to-many relationship with HabitCompletion
+    """
     __tablename__ = 'habits'
     
     id = db.Column(db.Integer, primary_key=True)
@@ -178,6 +224,18 @@ class Habit(db.Model):
 
 
 class HabitCompletion(db.Model):
+    """
+    HabitCompletion Model
+    
+    Tracks individual completions of habits on specific dates.
+    Ensures one completion per habit per day.
+    
+    Attributes:
+        id (int): Primary key
+        habit_id (int): Foreign key to Habit model
+        completion_date (date): Date of completion
+        completed_at (datetime): Timestamp of completion
+    """
     __tablename__ = 'habit_completions'
     
     id = db.Column(db.Integer, primary_key=True)

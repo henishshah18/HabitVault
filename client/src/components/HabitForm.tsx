@@ -9,6 +9,20 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, Save, X } from 'lucide-react';
 
+/**
+ * HabitForm Component
+ * 
+ * A form component for creating and editing habits. This component provides a modal interface
+ * for users to input or modify habit details including name, frequency, and start date.
+ * 
+ * Features:
+ * - Create new habits or edit existing ones
+ * - Set habit frequency (daily, weekdays, or custom schedule)
+ * - Custom day selection for specific days of the week
+ * - Validation and error handling
+ * - JWT authentication integration
+ */
+
 interface Habit {
   id: number;
   unique_id: string;
@@ -23,11 +37,35 @@ interface Habit {
   completion_timestamp?: string;
 }
 
+/**
+ * Interface for the Habit data structure
+ * @interface Habit
+ * @property {number} id - Unique identifier for the habit
+ * @property {string} unique_id - UUID for the habit
+ * @property {string} name - Name/description of the habit
+ * @property {string} target_days - Frequency pattern ('every_day', 'weekdays', or comma-separated days)
+ * @property {string} start_date - ISO date string for habit start date
+ * @property {number} user_id - Associated user identifier
+ * @property {number} current_streak - Current consecutive completion streak
+ * @property {number} longest_streak - Longest achieved streak
+ * @property {boolean} is_due_today - Whether the habit is due for completion today
+ * @property {boolean} is_completed_today - Whether the habit has been completed today
+ * @property {string} [completion_timestamp] - Optional timestamp of today's completion
+ */
+
 interface HabitFormProps {
   habit?: Habit | null;
   onSuccess: (habit: Habit) => void;
   onCancel: () => void;
 }
+
+/**
+ * Props for the HabitForm component
+ * @interface HabitFormProps
+ * @property {Habit | null} [habit] - Existing habit data for editing, or null for new habit
+ * @property {(habit: Habit) => void} onSuccess - Callback function called after successful save
+ * @property {() => void} onCancel - Callback function for canceling the form
+ */
 
 export function HabitForm({ habit, onSuccess, onCancel }: HabitFormProps) {
   const [name, setName] = useState('');
@@ -38,6 +76,10 @@ export function HabitForm({ habit, onSuccess, onCancel }: HabitFormProps) {
   const [error, setError] = useState('');
   const { toast } = useToast();
 
+  /**
+   * Array of weekday objects for custom schedule selection
+   * Each day contains an id and display label
+   */
   const daysOfWeek = [
     { id: 'monday', label: 'Monday' },
     { id: 'tuesday', label: 'Tuesday' },
@@ -48,6 +90,11 @@ export function HabitForm({ habit, onSuccess, onCancel }: HabitFormProps) {
     { id: 'sunday', label: 'Sunday' },
   ];
 
+  /**
+   * Toggles a day in the custom schedule selection
+   * @param {string} dayId - The ID of the day to toggle
+   * @param {boolean} checked - Whether the day should be selected or unselected
+   */
   const handleCustomDayToggle = (dayId: string, checked: boolean) => {
     if (checked) {
       setCustomDays([...customDays, dayId]);
@@ -72,6 +119,11 @@ export function HabitForm({ habit, onSuccess, onCancel }: HabitFormProps) {
     }
   }, [habit]);
 
+  /**
+   * Handles form submission for creating or updating a habit
+   * Includes validation, API interaction, and error handling
+   * @param {React.FormEvent} e - Form submission event
+   */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -119,8 +171,6 @@ export function HabitForm({ habit, onSuccess, onCancel }: HabitFormProps) {
       setIsLoading(false);
     }
   };
-
-
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">

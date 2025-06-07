@@ -3,6 +3,25 @@ import { createServer, type Server } from "http";
 import { spawn } from "child_process";
 import { log } from "./vite";
 
+/**
+ * Server Routes Configuration
+ * 
+ * This module sets up the Express server routes and Flask backend proxy.
+ * It manages the communication between the frontend and the Flask backend,
+ * handling all API requests and responses.
+ * 
+ * Key Features:
+ * - Flask backend process management
+ * - API request proxying
+ * - Error handling and logging
+ * - Authentication header forwarding
+ */
+
+/**
+ * Registers routes and initializes the server
+ * @param {Express} app - Express application instance
+ * @returns {Promise<Server>} HTTP server instance
+ */
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
 
@@ -86,3 +105,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   return httpServer;
 }
+
+/**
+ * Starts the Flask backend process
+ * Configures environment and handles process output
+ * @param {string} pythonPath - Path to Python executable
+ * @param {string} scriptPath - Path to Flask entry script
+ */
+
+/**
+ * Proxy middleware for Flask backend requests
+ * Handles request forwarding, error handling, and response processing
+ * @param {Request} req - Express request object
+ * @param {Response} res - Express response object
+ */

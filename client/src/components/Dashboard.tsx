@@ -16,9 +16,11 @@ interface User {
   email: string;
 }
 
-interface DashboardProps {
-  onLogout: () => void;
-}
+/**
+ * Props for the Dashboard component
+ * @interface DashboardProps
+ * @property {() => void} onLogout - Callback function to handle user logout
+ */
 
 export function Dashboard({ onLogout }: DashboardProps) {
   const [user, setUser] = useState<User | null>(null);
@@ -82,6 +84,10 @@ export function Dashboard({ onLogout }: DashboardProps) {
     onLogout();
   };
 
+  /**
+   * Handles tab switching in the dashboard
+   * @param {string} value - The identifier of the selected tab
+   */
   const handleNewHabit = () => {
     setActiveTab('manage-habits');
   };
@@ -179,3 +185,18 @@ export function Dashboard({ onLogout }: DashboardProps) {
     </div>
   );
 }
+
+/**
+ * Handles the creation of a new habit
+ * Updates the UI and syncs with the backend
+ */
+
+/**
+ * Handles the editing of an existing habit
+ * @param {Habit} habit - The habit to be edited
+ */
+
+/**
+ * Handles the deletion of a habit
+ * @param {number} habitId - The ID of the habit to be deleted
+ */

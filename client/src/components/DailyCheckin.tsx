@@ -2,9 +2,12 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
-import { Flame, Trophy, CheckCircle2, Target } from 'lucide-react';
+import { ProgressCircle } from './ProgressCircle';
+import { MilestoneProgress } from './MilestoneProgress';
+import { Flame, Trophy, CheckCircle2, Target, Plus } from 'lucide-react';
 
 interface Habit {
   id: number;
@@ -21,10 +24,24 @@ interface Habit {
 
 interface DailyCheckinProps {
   onLogout: () => void;
+  onNewHabit?: () => void;
 }
 
-export function DailyCheckin({ onLogout }: DailyCheckinProps) {
+interface User {
+  id: number;
+  email: string;
+  perfect_days_count: number;
+  milestone: {
+    next_milestone: number;
+    current_count: number;
+    progress_percentage: number;
+    days_remaining: number;
+  };
+}
+
+export function DailyCheckin({ onLogout, onNewHabit }: DailyCheckinProps) {
   const [habits, setHabits] = useState<Habit[]>([]);
+  const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const { toast } = useToast();
@@ -36,6 +53,37 @@ export function DailyCheckin({ onLogout }: DailyCheckinProps) {
   const completedTasks = completedToday.length;
   const progressPercentage = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
   const isPerfectDay = totalTasks > 0 && completedTasks === totalTasks;
+
+  const fetchUserData = async () => {
+    const token = localStorage.getItem('authToken');
+    
+    if (!token) {
+      onLogout();
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/protected', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setUser(data.user);
+      } else if (response.status === 401) {
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('userId');
+        onLogout();
+      }
+    } catch (err) {
+      console.log('Failed to fetch user data:', err);
+    }
+  };
 
   const fetchHabits = async () => {
     const token = localStorage.getItem('authToken');
@@ -75,6 +123,7 @@ export function DailyCheckin({ onLogout }: DailyCheckinProps) {
   };
 
   useEffect(() => {
+    fetchUserData();
     fetchHabits();
   }, [onLogout]);
 

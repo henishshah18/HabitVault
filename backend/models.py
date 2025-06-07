@@ -10,6 +10,7 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(255), nullable=False)
+    perfect_days_count = db.Column(db.Integer, default=0)
     
     # Relationship to habits
     habits = db.relationship('Habit', backref='user', lazy=True, cascade='all, delete-orphan')
@@ -17,11 +18,38 @@ class User(db.Model):
     def __init__(self, email, password_hash):
         self.email = email
         self.password_hash = password_hash
+        self.perfect_days_count = 0
+    
+    def get_next_milestone(self):
+        """Get the next milestone and progress towards it"""
+        milestones = [50, 100, 200, 365, 500, 1000]
+        current_count = self.perfect_days_count
+        
+        for milestone in milestones:
+            if current_count < milestone:
+                progress_percentage = (current_count / milestone) * 100
+                return {
+                    'next_milestone': milestone,
+                    'current_count': current_count,
+                    'progress_percentage': progress_percentage,
+                    'days_remaining': milestone - current_count
+                }
+        
+        # If beyond all milestones
+        return {
+            'next_milestone': current_count + 100,
+            'current_count': current_count,
+            'progress_percentage': 100,
+            'days_remaining': 0
+        }
     
     def to_dict(self):
+        milestone_data = self.get_next_milestone()
         return {
             'id': self.id,
-            'email': self.email
+            'email': self.email,
+            'perfect_days_count': self.perfect_days_count,
+            'milestone': milestone_data
         }
     
     def __repr__(self):

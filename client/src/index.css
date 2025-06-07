@@ -4,6 +4,48 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Full window layout */
+html, body {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+#root {
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-width: 100vw;
+}
+
+/* Responsive breakpoints for dynamic resizing */
+@media (max-width: 768px) {
+  #root {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  #root {
+    font-size: 12px;
+  }
+}
+
+/* Ensure all containers adapt to window size */
+.full-height {
+  height: 100vh;
+  min-height: 100vh;
+}
+
+.full-width {
+  width: 100vw;
+  min-width: 100vw;
+}
+
 :root {
   --background: hsl(0, 0%, 100%);
   --foreground: hsl(222.2, 84%, 4.9%);

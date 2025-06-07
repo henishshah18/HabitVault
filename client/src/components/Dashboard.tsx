@@ -18,9 +18,10 @@ interface User {
 
 /**
  * Props for the Dashboard component
- * @interface DashboardProps
- * @property {() => void} onLogout - Callback function to handle user logout
  */
+interface DashboardProps {
+  onLogout: () => void;
+}
 
 export function Dashboard({ onLogout }: DashboardProps) {
   const [user, setUser] = useState<User | null>(null);
@@ -161,7 +162,7 @@ export function Dashboard({ onLogout }: DashboardProps) {
 
         {/* Main Content */}
         <main className="flex-1 overflow-auto">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+          <div className="h-full w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
             {error && (
               <Alert variant="destructive">
                 <AlertDescription>{error}</AlertDescription>

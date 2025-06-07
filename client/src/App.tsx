@@ -62,7 +62,7 @@ function AuthApp() {
 
   if (isAuthenticated && currentView === 'dashboard') {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <div className="h-screen w-screen bg-background overflow-hidden">
         <Dashboard onLogout={handleLogout} />
       </div>
     );
@@ -73,7 +73,7 @@ function AuthApp() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+    <div className="h-screen w-screen bg-background flex items-center justify-center p-4">
       {currentView === 'login' ? (
         <Login 
           onSwitchToRegister={handleSwitchToRegister}

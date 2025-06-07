@@ -9,6 +9,7 @@ import { ProgressCircle } from './ProgressCircle';
 
 import { HabitForm } from './HabitForm';
 import { Flame, Trophy, CheckCircle2, Target, Plus, Clock } from 'lucide-react';
+import { formatCompletionTime } from '@/lib/timeUtils';
 
 interface Habit {
   id: number;
@@ -308,7 +309,7 @@ export function DailyCheckin({ onLogout, onNewHabit }: DailyCheckinProps) {
                           <div className="flex items-center space-x-2 pt-1 border-t border-gray-200 dark:border-gray-700">
                             <Clock className="w-3 h-3 text-green-600" />
                             <span className="text-xs text-green-600">
-                              Completed at {new Date(habit.completion_timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              Completed at {formatCompletionTime(habit.completion_timestamp)}
                             </span>
                           </div>
                         )}

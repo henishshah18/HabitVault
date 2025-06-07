@@ -93,10 +93,14 @@ export function AnalyticsDashboard() {
     }
 
     try {
-      // Get historical data for the past 30 days
+      // Get historical data from the earliest habit start date
       const endDate = new Date();
-      const startDate = new Date();
-      startDate.setDate(startDate.getDate() - 30);
+      const earliestStartDate = habitsData.reduce((earliest, habit) => {
+        const habitStartDate = new Date(habit.start_date);
+        return habitStartDate < earliest ? habitStartDate : earliest;
+      }, new Date());
+      
+      const startDate = earliestStartDate;
 
       // Get completion history for all habits
       const historyPromises = habitsData.map(async (habit) => {
@@ -263,7 +267,7 @@ export function AnalyticsDashboard() {
           <CardContent>
             <div className="text-2xl font-bold">{perfectDayRate}%</div>
             <p className="text-xs text-muted-foreground">
-              perfect days (last 30 days)
+              perfect days (all time)
             </p>
           </CardContent>
         </Card>

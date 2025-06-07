@@ -167,10 +167,15 @@ export function DailyCheckin({ onLogout, onNewHabit }: DailyCheckinProps) {
       if (response.ok) {
         // Small delay to show loading effect
         setTimeout(() => {
-          // Update with server response based on current optimistic state
+          // Update with server response but preserve is_due_today status
           setHabits(currentHabits => 
             currentHabits.map(habit => 
-              habit.id === habitId ? data.habit : habit
+              habit.id === habitId 
+                ? { 
+                    ...data.habit, 
+                    is_due_today: habit.is_due_today // Preserve due status to prevent disappearing
+                  }
+                : habit
             )
           );
           

@@ -2,7 +2,9 @@ import { ApiResponseCard } from "@/components/api-response-card";
 import { TechnicalSpecs } from "@/components/technical-specs";
 import { ProjectStructure } from "@/components/project-structure";
 import { QuickActions } from "@/components/quick-actions";
-import { Code, Globe, ArrowUpDown, Plug, Smartphone } from "lucide-react";
+import { Code, Globe, ArrowUpDown, Plug, Smartphone, UserPlus } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Link } from "wouter";
 
 export default function Home() {
   const features = [
@@ -58,6 +60,12 @@ export default function Home() {
                   <span className="text-slate-600">Frontend</span>
                 </div>
               </div>
+              <Link href="/auth">
+                <Button variant="outline" size="sm" className="flex items-center space-x-2">
+                  <UserPlus className="w-4 h-4" />
+                  <span>Login</span>
+                </Button>
+              </Link>
             </div>
           </div>
         </div>
@@ -74,8 +82,16 @@ export default function Home() {
           </h2>
           <p className="text-xl text-slate-600 max-w-3xl mx-auto leading-relaxed">
             A modern web application built with Flask backend and React frontend, 
-            featuring real-time API communication and responsive design.
+            featuring JWT authentication, secure user registration, and real-time API communication.
           </p>
+          <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
+            <Link href="/auth">
+              <Button size="lg" className="flex items-center space-x-2">
+                <UserPlus className="w-5 h-5" />
+                <span>Try Authentication</span>
+              </Button>
+            </Link>
+          </div>
         </div>
 
         {/* API Communication Demo */}

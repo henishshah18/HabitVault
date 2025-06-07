@@ -157,27 +157,30 @@ export function DailyCheckin({ onLogout, onNewHabit }: DailyCheckinProps) {
       const data = await response.json();
 
       if (response.ok) {
-        // Update with server response to ensure consistency
-        const serverHabits = habits.map(habit => 
-          habit.id === habitId ? data.habit : habit
+        // Update with server response based on current optimistic state
+        setHabits(currentHabits => 
+          currentHabits.map(habit => 
+            habit.id === habitId ? data.habit : habit
+          )
         );
-        setHabits(serverHabits);
         
         // Final event dispatch with server data
         window.dispatchEvent(new CustomEvent('habitCompletionChanged', {
-          detail: { habitId, isCompleted: !isCompleted, habits: serverHabits }
+          detail: { habitId, isCompleted: !isCompleted, habits: optimisticHabits }
         }));
         
-        toast({
-          title: 'Success',
-          description: `Habit ${isCompleted ? 'uncompleted' : 'completed'} successfully`,
-          duration: 1500,
-        });
+
       } else {
-        // Revert optimistic update on error
-        setHabits(habits);
+        // Revert optimistic update on error - get fresh state
+        setHabits(currentHabits => 
+          currentHabits.map(habit => 
+            habit.id === habitId 
+              ? { ...habit, is_completed_today: isCompleted, completion_timestamp: habit.completion_timestamp }
+              : habit
+          )
+        );
         window.dispatchEvent(new CustomEvent('habitCompletionChanged', {
-          detail: { habitId, isCompleted, habits }
+          detail: { habitId, isCompleted, habits: optimisticHabits }
         }));
         
         toast({
@@ -188,9 +191,15 @@ export function DailyCheckin({ onLogout, onNewHabit }: DailyCheckinProps) {
       }
     } catch (err) {
       // Revert optimistic update on network error
-      setHabits(habits);
+      setHabits(currentHabits => 
+        currentHabits.map(habit => 
+          habit.id === habitId 
+            ? { ...habit, is_completed_today: isCompleted, completion_timestamp: habit.completion_timestamp }
+            : habit
+        )
+      );
       window.dispatchEvent(new CustomEvent('habitCompletionChanged', {
-        detail: { habitId, isCompleted, habits }
+        detail: { habitId, isCompleted, habits: optimisticHabits }
       }));
       
       toast({

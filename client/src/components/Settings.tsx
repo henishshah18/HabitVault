@@ -11,19 +11,16 @@ import { getCurrentUserId, getUserPreferences, saveUserPreferences } from '@/lib
 interface UserSettings {
   darkMode: boolean;
   motivationalQuotes: boolean;
-  analyticsTimeRange: 'week' | 'month';
 }
 
 export function Settings() {
   const [settings, setSettings] = useState<UserSettings>({
     darkMode: false,
-    motivationalQuotes: true,
-    analyticsTimeRange: 'month'
+    motivationalQuotes: true
   });
   const [originalSettings, setOriginalSettings] = useState<UserSettings>({
     darkMode: false,
-    motivationalQuotes: true,
-    analyticsTimeRange: 'month'
+    motivationalQuotes: true
   });
   const [userId, setUserId] = useState<number | null>(null);
   const [hasChanges, setHasChanges] = useState(false);
@@ -38,8 +35,7 @@ export function Settings() {
       const userSettings = getUserPreferences(currentUserId);
       const loadedSettings = {
         darkMode: userSettings.darkMode,
-        motivationalQuotes: userSettings.motivationalQuotes,
-        analyticsTimeRange: userSettings.analyticsTimeRange
+        motivationalQuotes: userSettings.motivationalQuotes
       };
       setSettings(loadedSettings);
       setOriginalSettings(loadedSettings);
@@ -175,37 +171,7 @@ export function Settings() {
         </CardContent>
       </Card>
 
-      {/* Analytics Settings */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <Calendar className="w-5 h-5" />
-            <span>Analytics Preferences</span>
-          </CardTitle>
-          <CardDescription>
-            Configure your analytics dashboard display options
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <Label htmlFor="analytics-time-range">Default Time Range</Label>
-              <p className="text-sm text-muted-foreground">
-                Default time range for analytics and calendar views
-              </p>
-            </div>
-            <Select value={settings.analyticsTimeRange} onValueChange={(value: 'week' | 'month') => updateSetting('analyticsTimeRange', value)}>
-              <SelectTrigger className="w-32">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="week">Week</SelectItem>
-                <SelectItem value="month">Month</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
+
 
 
     </div>

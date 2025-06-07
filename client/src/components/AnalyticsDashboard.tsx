@@ -56,6 +56,21 @@ export function AnalyticsDashboard() {
     ? Math.round(habits.reduce((sum, habit) => sum + habit.current_streak, 0) / habits.length)
     : 0;
   const longestStreak = habits.reduce((max, habit) => Math.max(max, habit.longest_streak), 0);
+  
+  // Find habit(s) with longest streak
+  const getLongestStreakHabit = () => {
+    if (habits.length === 0 || longestStreak === 0) return 'No habits';
+    
+    const habitsWithLongestStreak = habits.filter(h => h.longest_streak === longestStreak);
+    
+    if (habitsWithLongestStreak.length === 1) {
+      return `Habit: ${habitsWithLongestStreak[0].name}`;
+    } else if (habitsWithLongestStreak.length > 1) {
+      return 'Habit: Multiple';
+    }
+    return 'No habits';
+  };
+
   const dueTodayHabits = habits.filter(h => h.is_due_today);
   const completionRate = dueTodayHabits.length > 0
     ? Math.round((dueTodayHabits.filter(h => h.is_completed_today).length / dueTodayHabits.length) * 100)
@@ -126,7 +141,7 @@ export function AnalyticsDashboard() {
           <CardContent>
             <div className="text-2xl font-bold">{longestStreak}</div>
             <p className="text-xs text-muted-foreground">
-              best performance
+              {getLongestStreakHabit()}
             </p>
           </CardContent>
         </Card>

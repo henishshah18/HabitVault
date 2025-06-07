@@ -51,26 +51,29 @@ class User(db.Model):
         return date_str in self.get_perfect_days_set()
 
     def get_next_milestone(self):
-        """Get the next milestone and progress towards it"""
-        milestones = [50, 100, 200, 365, 500, 1000]
+        """Get the next milestone and progress towards it with automatic 50-day increments"""
         current_count = self.perfect_days_count
         
-        for milestone in milestones:
-            if current_count < milestone:
-                progress_percentage = (current_count / milestone) * 100
-                return {
-                    'next_milestone': milestone,
-                    'current_count': current_count,
-                    'progress_percentage': progress_percentage,
-                    'days_remaining': milestone - current_count
-                }
+        # Calculate the next milestone target based on 50-day increments
+        # Bronze (0-49), Silver (50-99), Gold (100-149), Diamond (150+)
+        if current_count < 50:
+            next_milestone = 50
+        elif current_count < 100:
+            next_milestone = 100
+        elif current_count < 150:
+            next_milestone = 150
+        else:
+            # For Diamond levels (150+), continue in 50-day increments
+            next_milestone = ((current_count // 50) + 1) * 50
         
-        # If beyond all milestones
+        progress_percentage = (current_count / next_milestone) * 100
+        days_remaining = next_milestone - current_count
+        
         return {
-            'next_milestone': current_count + 100,
+            'next_milestone': next_milestone,
             'current_count': current_count,
-            'progress_percentage': 100,
-            'days_remaining': 0
+            'progress_percentage': progress_percentage,
+            'days_remaining': days_remaining
         }
     
     def to_dict(self):

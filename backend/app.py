@@ -586,8 +586,19 @@ def create_app():
             if existing_completion:
                 return jsonify({'error': 'Habit already completed today'}), 409
             
-            # Create completion record
+            # Get local timestamp from frontend for accurate timezone display
+            local_timestamp = data.get('local_timestamp')
+            if local_timestamp:
+                try:
+                    completion_time = datetime.fromisoformat(local_timestamp.replace('Z', '+00:00'))
+                except ValueError:
+                    completion_time = datetime.utcnow()
+            else:
+                completion_time = datetime.utcnow()
+            
+            # Create completion record with accurate timestamp
             completion = HabitCompletion(habit_id=habit_id, completion_date=today)
+            completion.completed_at = completion_time
             db.session.add(completion)
             
             # Calculate current streak properly

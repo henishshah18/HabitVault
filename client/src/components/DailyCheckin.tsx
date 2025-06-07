@@ -158,7 +158,8 @@ export function DailyCheckin({ onLogout, onNewHabit }: DailyCheckinProps) {
           'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify({
-          local_date: getTodayLocalDate()
+          local_date: getTodayLocalDate(),
+          local_timestamp: new Date().toISOString()
         })
       });
 

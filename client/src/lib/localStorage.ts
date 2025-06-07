@@ -82,15 +82,11 @@ export const clearUserData = (userId: number): void => {
   }
 };
 
-// Get current user ID from auth token
+// Get current user ID from localStorage
 export const getCurrentUserId = (): number | null => {
   try {
-    const token = localStorage.getItem('authToken');
-    if (!token) return null;
-    
-    // Decode JWT payload (basic decode, not verification)
-    const payload = JSON.parse(atob(token.split('.')[1]));
-    return payload.sub ? parseInt(payload.sub) : null;
+    const storedUserId = localStorage.getItem('userId');
+    return storedUserId ? parseInt(storedUserId) : null;
   } catch (error) {
     console.error('Failed to get current user ID:', error);
     return null;

@@ -119,11 +119,12 @@ export function HabitCompletionHeatmap({ habitId }: HabitCompletionHeatmapProps)
           }
         } catch (error) {
           console.error(`Failed to fetch history for habit ${habit.id}:`, error);
+          return null;
         }
         return { habitId: habit.id, habit: habit, history: [] };
       });
 
-      const allHistories = await Promise.all(historyPromises);
+      const allHistories = (await Promise.all(historyPromises)).filter(h => h !== null);
       const today = new Date().toISOString().split('T')[0];
       
       // Process each date

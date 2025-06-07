@@ -28,13 +28,14 @@ function AuthApp() {
       
       // Apply saved user preferences on login
       const userId = parseInt(storedUserId);
-      const { getUserPreferences } = require('@/lib/localStorage');
-      const userPrefs = getUserPreferences(userId);
-      if (userPrefs.darkMode) {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-      }
+      import('@/lib/localStorage').then(({ getUserPreferences }) => {
+        const userPrefs = getUserPreferences(userId);
+        if (userPrefs.darkMode) {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+        }
+      });
     }
   }, []);
 

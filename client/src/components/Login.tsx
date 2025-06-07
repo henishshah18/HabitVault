@@ -40,6 +40,16 @@ export function Login({ onSwitchToRegister, onLoginSuccess, onBackToHome }: Logi
         localStorage.setItem('authToken', data.access_token);
         localStorage.setItem('userId', data.user_id.toString());
         
+        // Apply user preferences immediately after login
+        import('@/lib/localStorage').then(({ getUserPreferences }) => {
+          const userPrefs = getUserPreferences(data.user_id);
+          if (userPrefs.darkMode) {
+            document.documentElement.classList.add('dark');
+          } else {
+            document.documentElement.classList.remove('dark');
+          }
+        });
+        
         toast({
           title: 'Login successful',
           description: `Welcome back, ${data.user.email}!`,

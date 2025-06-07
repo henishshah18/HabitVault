@@ -9,11 +9,12 @@ import NotFound from "@/pages/not-found";
 import { Login } from "@/components/Login";
 import { Register } from "@/components/Register";
 import { Dashboard } from "@/components/Dashboard";
+import { LandingPage } from "@/components/LandingPage";
 
-type AuthView = 'login' | 'register' | 'dashboard';
+type AuthView = 'landing' | 'login' | 'register' | 'dashboard';
 
 function AuthApp() {
-  const [currentView, setCurrentView] = useState<AuthView>('login');
+  const [currentView, setCurrentView] = useState<AuthView>('landing');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
@@ -25,6 +26,10 @@ function AuthApp() {
     }
   }, []);
 
+  const handleGetStarted = () => {
+    setCurrentView('login');
+  };
+
   const handleLoginSuccess = (token: string, userId: number) => {
     setIsAuthenticated(true);
     setCurrentView('dashboard');
@@ -32,7 +37,7 @@ function AuthApp() {
 
   const handleLogout = () => {
     setIsAuthenticated(false);
-    setCurrentView('login');
+    setCurrentView('landing');
   };
 
   const handleSwitchToRegister = () => {
@@ -43,6 +48,10 @@ function AuthApp() {
     setCurrentView('login');
   };
 
+  const handleBackToHome = () => {
+    setCurrentView('landing');
+  };
+
   if (isAuthenticated && currentView === 'dashboard') {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
@@ -51,16 +60,22 @@ function AuthApp() {
     );
   }
 
+  if (currentView === 'landing') {
+    return <LandingPage onGetStarted={handleGetStarted} />;
+  }
+
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       {currentView === 'login' ? (
         <Login 
           onSwitchToRegister={handleSwitchToRegister}
           onLoginSuccess={handleLoginSuccess}
+          onBackToHome={handleBackToHome}
         />
       ) : (
         <Register 
           onSwitchToLogin={handleSwitchToLogin}
+          onBackToHome={handleBackToHome}
         />
       )}
     </div>

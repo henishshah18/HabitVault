@@ -9,9 +9,10 @@ import { useToast } from '@/hooks/use-toast';
 interface LoginProps {
   onSwitchToRegister: () => void;
   onLoginSuccess: (token: string, userId: number) => void;
+  onBackToHome?: () => void;
 }
 
-export function Login({ onSwitchToRegister, onLoginSuccess }: LoginProps) {
+export function Login({ onSwitchToRegister, onLoginSuccess, onBackToHome }: LoginProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -101,16 +102,27 @@ export function Login({ onSwitchToRegister, onLoginSuccess }: LoginProps) {
           <Button type="submit" className="w-full" disabled={isLoading}>
             {isLoading ? 'Signing In...' : 'Sign In'}
           </Button>
-          <p className="text-sm text-center text-muted-foreground">
-            Don't have an account?{' '}
-            <button
-              type="button"
-              onClick={onSwitchToRegister}
-              className="text-primary underline-offset-4 hover:underline"
-            >
-              Create account
-            </button>
-          </p>
+          <div className="flex flex-col space-y-2">
+            <p className="text-sm text-center text-muted-foreground">
+              Don't have an account?{' '}
+              <button
+                type="button"
+                onClick={onSwitchToRegister}
+                className="text-primary underline-offset-4 hover:underline"
+              >
+                Create account
+              </button>
+            </p>
+            {onBackToHome && (
+              <button
+                type="button"
+                onClick={onBackToHome}
+                className="text-xs text-center text-muted-foreground hover:text-foreground transition-colors"
+              >
+                ← Back to Home
+              </button>
+            )}
+          </div>
         </CardFooter>
       </form>
     </Card>

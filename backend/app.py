@@ -443,10 +443,36 @@ def create_app():
         try:
             current_user_id = int(get_jwt_identity())
             
+            # Get optional local date for timezone-aware habit checking
+            local_date_str = request.args.get('local_date')
+            if local_date_str:
+                try:
+                    local_date = datetime.strptime(local_date_str, '%Y-%m-%d').date()
+                except ValueError:
+                    local_date = date.today()
+            else:
+                local_date = date.today()
+            
             habits = Habit.query.filter_by(user_id=current_user_id).all()
             
+            # Convert habits to dict with timezone-aware date checking
+            habits_data = []
+            for habit in habits:
+                habit_dict = habit.to_dict()
+                # Override is_due_today with timezone-aware check
+                habit_dict['is_due_today'] = habit.is_due_today(local_date)
+                # Override is_completed_today with timezone-aware check
+                completion = HabitCompletion.query.filter_by(
+                    habit_id=habit.id,
+                    completion_date=local_date
+                ).first()
+                habit_dict['is_completed_today'] = completion is not None
+                if completion:
+                    habit_dict['completion_timestamp'] = completion.completed_at.isoformat()
+                habits_data.append(habit_dict)
+            
             return jsonify({
-                'habits': [habit.to_dict() for habit in habits],
+                'habits': habits_data,
                 'count': len(habits)
             }), 200
             
@@ -599,6 +625,18 @@ def create_app():
         try:
             current_user_id = int(get_jwt_identity())
             
+            # Get timezone-aware date from frontend or use server date as fallback
+            data = request.get_json() or {}
+            local_date_str = data.get('local_date')
+            
+            if local_date_str:
+                try:
+                    today = datetime.strptime(local_date_str, '%Y-%m-%d').date()
+                except ValueError:
+                    today = date.today()
+            else:
+                today = date.today()
+            
             # Find habit belonging to current user
             habit = Habit.query.filter_by(id=habit_id, user_id=current_user_id).first()
             
@@ -606,7 +644,6 @@ def create_app():
                 return jsonify({'error': 'Habit not found or access denied'}), 404
             
             # Find today's completion
-            today = date.today()
             completion = HabitCompletion.query.filter_by(
                 habit_id=habit_id,
                 completion_date=today

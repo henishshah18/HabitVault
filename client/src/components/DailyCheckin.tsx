@@ -94,7 +94,8 @@ export function DailyCheckin({ onLogout, onNewHabit }: DailyCheckinProps) {
     }
 
     try {
-      const response = await fetch('/api/habits', {
+      const localDate = getTodayLocalDate();
+      const response = await fetch(`/api/habits?local_date=${localDate}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -156,6 +157,9 @@ export function DailyCheckin({ onLogout, onNewHabit }: DailyCheckinProps) {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
+        body: JSON.stringify({
+          local_date: getTodayLocalDate()
+        })
       });
 
       const data = await response.json();

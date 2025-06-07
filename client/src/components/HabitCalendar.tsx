@@ -39,9 +39,11 @@ interface HabitCalendarProps {
 export function HabitCalendar({ habits: externalHabits, onDataUpdate }: HabitCalendarProps) {
   const [habits, setHabits] = useState<Habit[]>([]);
   const [loading, setLoading] = useState(true);
+  const [viewSwitching, setViewSwitching] = useState(false);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [viewMode, setViewMode] = useState<ViewMode>('month');
   const [calendarData, setCalendarData] = useState<CalendarDay[]>([]);
+  const [completionCache, setCompletionCache] = useState<Map<string, any>>(new Map());
 
   // Load view mode preference
   useEffect(() => {
@@ -53,12 +55,19 @@ export function HabitCalendar({ habits: externalHabits, onDataUpdate }: HabitCal
   }, []);
 
   // Save view mode preference
-  const handleViewModeChange = (mode: ViewMode) => {
+  const handleViewModeChange = async (mode: ViewMode) => {
+    if (mode === viewMode) return;
+    
+    setViewSwitching(true);
     setViewMode(mode);
     const userId = getCurrentUserId();
     if (userId) {
       updateUserPreference(userId, 'analyticsTimeRange', mode === 'week' ? 'week' : 'month');
     }
+    
+    // Regenerate calendar data for new view
+    await generateCalendarData();
+    setViewSwitching(false);
   };
 
   // Fetch habits data
@@ -145,10 +154,17 @@ export function HabitCalendar({ habits: externalHabits, onDataUpdate }: HabitCal
     }
   };
 
-  // Fetch completion data for a specific date range
+  // Fetch completion data for a specific date range with caching and parallel requests
   const fetchCompletionData = async (startDate: string, endDate: string) => {
     const token = localStorage.getItem('authToken');
     if (!token) return {};
+
+    const cacheKey = `${startDate}-${endDate}-${habits.map(h => h.id).join(',')}`;
+    
+    // Check cache first
+    if (completionCache.has(cacheKey)) {
+      return completionCache.get(cacheKey);
+    }
 
     const completionMap: { [date: string]: { completed: number; total: number } } = {};
 
@@ -161,8 +177,8 @@ export function HabitCalendar({ habits: externalHabits, onDataUpdate }: HabitCal
       completionMap[dateStr] = { completed: 0, total: 0 };
     }
 
-    // Get completion data for each habit
-    for (const habit of habits) {
+    // Fetch all habit histories in parallel
+    const historyPromises = habits.map(async (habit) => {
       try {
         const response = await fetch(`/api/habits/${habit.id}/history?start_date=${startDate}&end_date=${endDate}`, {
           headers: { 'Authorization': `Bearer ${token}` }
@@ -170,35 +186,48 @@ export function HabitCalendar({ habits: externalHabits, onDataUpdate }: HabitCal
 
         if (response.ok) {
           const historyData = await response.json();
+          return { habit, historyData };
+        }
+        return { habit, historyData: null };
+      } catch (error) {
+        console.error(`Failed to fetch history for habit ${habit.id}:`, error);
+        return { habit, historyData: null };
+      }
+    });
+
+    const historyResults = await Promise.all(historyPromises);
+
+    // Process all results
+    historyResults.forEach(({ habit, historyData }) => {
+      if (!historyData) return;
+
+      // Process each date in the range
+      for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+        const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        const today = new Date();
+        const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+        
+        if (isHabitDueOnDate(habit, d)) {
+          completionMap[dateStr].total++;
           
-          // Process each date in the range
-          for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-            const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-            const today = new Date();
-            const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-            
-            if (isHabitDueOnDate(habit, d)) {
-              completionMap[dateStr].total++;
-              
-              // For today, use real-time completion status
-              if (dateStr === todayStr) {
-                if (habit.is_completed_today) {
-                  completionMap[dateStr].completed++;
-                }
-              } else {
-                // For historical dates, check completion history
-                const completion = historyData.history?.find((h: any) => h.date === dateStr);
-                if (completion && completion.status === 'completed') {
-                  completionMap[dateStr].completed++;
-                }
-              }
+          // For today, use real-time completion status
+          if (dateStr === todayStr) {
+            if (habit.is_completed_today) {
+              completionMap[dateStr].completed++;
+            }
+          } else {
+            // For historical dates, check completion history
+            const completion = historyData.history?.find((h: any) => h.date === dateStr);
+            if (completion && completion.status === 'completed') {
+              completionMap[dateStr].completed++;
             }
           }
         }
-      } catch (error) {
-        console.error(`Failed to fetch history for habit ${habit.id}:`, error);
       }
-    }
+    });
+
+    // Cache the result
+    setCompletionCache(prev => new Map(prev.set(cacheKey, completionMap)));
 
     return completionMap;
   };
@@ -208,6 +237,10 @@ export function HabitCalendar({ habits: externalHabits, onDataUpdate }: HabitCal
     if (habits.length === 0) {
       setCalendarData([]);
       return;
+    }
+
+    if (!viewSwitching) {
+      setLoading(true);
     }
 
     const today = new Date();
@@ -266,14 +299,20 @@ export function HabitCalendar({ habits: externalHabits, onDataUpdate }: HabitCal
     }
     
     setCalendarData(days);
+    if (!viewSwitching) {
+      setLoading(false);
+    }
   };
 
-  // Regenerate calendar when dependencies change
+  // Update calendar when habits or date changes (but not viewMode - handled in handleViewModeChange)
   useEffect(() => {
-    if (!loading) {
-      generateCalendarData();
-    }
-  }, [habits, currentDate, viewMode, loading]);
+    generateCalendarData();
+  }, [habits, currentDate]);
+
+  // Clear cache when habits change
+  useEffect(() => {
+    setCompletionCache(new Map());
+  }, [habits]);
 
   // Navigation functions
   const navigatePrevious = () => {
@@ -358,7 +397,7 @@ export function HabitCalendar({ habits: externalHabits, onDataUpdate }: HabitCal
   }
 
   return (
-    <Card>
+    <Card className={`transition-opacity duration-500 ${viewSwitching ? 'opacity-60' : 'opacity-100'}`}>
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center space-x-2">

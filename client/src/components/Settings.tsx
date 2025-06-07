@@ -59,18 +59,32 @@ export function Settings() {
     setHasChanges(changed);
   }, [settings, originalSettings]);
 
-  // Update settings locally (not saved until Save button is clicked)
+  // Update settings and save immediately
   const updateSetting = <K extends keyof UserSettings>(key: K, value: UserSettings[K]) => {
     const newSettings = { ...settings, [key]: value };
     setSettings(newSettings);
     
-    // Apply dark mode immediately for preview
+    // Apply dark mode immediately
     if (key === 'darkMode') {
       if (value) {
         document.documentElement.classList.add('dark');
       } else {
         document.documentElement.classList.remove('dark');
       }
+    }
+
+    // Save immediately to localStorage
+    if (userId) {
+      saveUserPreferences(userId, { [key]: value });
+      console.log('Auto-saved setting:', key, value);
+      
+      // Update original settings to reflect the saved state
+      setOriginalSettings(newSettings);
+      
+      // Dispatch custom event to notify other components
+      window.dispatchEvent(new CustomEvent('userPreferenceChanged', {
+        detail: { userId, key, value }
+      }));
     }
   };
 

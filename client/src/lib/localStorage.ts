@@ -48,12 +48,29 @@ export const getUserPreferences = (userId: number): UserPreferences => {
 export const saveUserPreferences = (userId: number, preferences: Partial<UserPreferences>): void => {
   try {
     const storageKey = getUserStorageKey(userId, 'preferences');
-    const current = getUserPreferences(userId);
+    
+    // Get current stored preferences directly from localStorage to avoid recursion
+    let current = DEFAULT_PREFERENCES;
+    const stored = localStorage.getItem(storageKey);
+    if (stored) {
+      try {
+        current = { ...DEFAULT_PREFERENCES, ...JSON.parse(stored) };
+      } catch (parseError) {
+        console.warn('Failed to parse stored preferences, using defaults');
+      }
+    }
+    
     const updated = { ...current, ...preferences };
     
     console.log('Saving preferences:', { userId, storageKey, current, preferences, updated });
+    
     localStorage.setItem(storageKey, JSON.stringify(updated));
-    console.log('Preferences saved to localStorage');
+    
+    // Verify it was saved
+    const saved = localStorage.getItem(storageKey);
+    console.log('Verification - saved value:', saved);
+    
+    console.log('Preferences saved to localStorage successfully');
   } catch (error) {
     console.error('Failed to save user preferences:', error);
   }

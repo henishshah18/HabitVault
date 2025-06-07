@@ -52,7 +52,7 @@ export const formatCompletionTime = (timestamp: string): string => {
   // DEBUG: Log the timestamp being formatted
   console.log('formatCompletionTime received timestamp:', timestamp);
   
-  // If timestamp ends with 'Z', it's already in UTC and needs local conversion
+  // If timestamp ends with 'Z', it's in UTC - convert to local time
   if (timestamp.endsWith('Z')) {
     const date = new Date(timestamp);
     console.log('formatCompletionTime parsed UTC date:', date);
@@ -65,18 +65,15 @@ export const formatCompletionTime = (timestamp: string): string => {
     return result;
   }
   
-  // If timestamp doesn't end with 'Z', treat it as local time
-  // Parse it as UTC then subtract timezone offset to get correct local display
-  const utcDate = new Date(timestamp + 'Z');
-  const localDate = new Date(utcDate.getTime() - (new Date().getTimezoneOffset() * 60000));
-  
-  console.log('formatCompletionTime parsed as local:', localDate);
-  const result = localDate.toLocaleTimeString([], {
+  // If timestamp doesn't end with 'Z', it's naive local time - parse directly
+  const date = new Date(timestamp);
+  console.log('formatCompletionTime parsed naive date:', date);
+  const result = date.toLocaleTimeString([], {
     hour: '2-digit',
     minute: '2-digit',
     hour12: true
   });
-  console.log('formatCompletionTime local formatted result:', result);
+  console.log('formatCompletionTime naive formatted result:', result);
   return result;
 };
 

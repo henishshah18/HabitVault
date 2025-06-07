@@ -11,7 +11,12 @@ class Config:
     SQLALCHEMY_ENGINE_OPTIONS = {
         'pool_pre_ping': True,
         'pool_recycle': 300,
-        'connect_args': {"sslmode": "prefer"}
+        'pool_reset_on_return': 'commit',
+        'connect_args': {
+            "sslmode": "prefer",
+            "application_name": "habit_tracker",
+            "connect_timeout": 10
+        }
     }
     
     # JWT configuration

@@ -108,7 +108,7 @@ export function Dashboard({ onLogout }: DashboardProps) {
   return (
     <div className="flex h-screen bg-background">
       {/* Sidebar */}
-      <div className="flex-shrink-0">
+      <div className="w-64 flex-shrink-0 border-r bg-card">
         <Sidebar 
           activeTab={activeTab} 
           onTabChange={setActiveTab} 
@@ -120,7 +120,7 @@ export function Dashboard({ onLogout }: DashboardProps) {
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
         <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-          <div className="flex items-center justify-between px-6 py-4">
+          <div className="flex items-center justify-between h-16 px-6">
             {/* App Logo/Name */}
             <div className="flex items-center space-x-3">
               <div className="flex items-center space-x-2">
@@ -136,7 +136,7 @@ export function Dashboard({ onLogout }: DashboardProps) {
               {user && (
                 <div className="flex items-center space-x-2">
                   <UserIcon className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-sm text-muted-foreground">
+                  <span className="text-sm text-muted-foreground hidden sm:inline">
                     Welcome, {user.email.split('@')[0]}!
                   </span>
                 </div>
@@ -147,7 +147,7 @@ export function Dashboard({ onLogout }: DashboardProps) {
 
         {/* Main Content */}
         <main className="flex-1 overflow-auto">
-          <div className="container mx-auto px-6 py-6 space-y-6">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
             {error && (
               <Alert variant="destructive">
                 <AlertDescription>{error}</AlertDescription>

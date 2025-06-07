@@ -4,29 +4,36 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Settings as SettingsIcon, Moon, Sun, Quote, Calendar } from 'lucide-react';
+import { getCurrentUserId, getUserPreferences, updateUserPreference } from '@/lib/localStorage';
 
 interface UserSettings {
   darkMode: boolean;
   motivationalQuotes: boolean;
-  heatmapView: 'weekly' | 'monthly';
+  analyticsTimeRange: 'week' | 'month';
 }
 
 export function Settings() {
   const [settings, setSettings] = useState<UserSettings>({
     darkMode: false,
     motivationalQuotes: true,
-    heatmapView: 'monthly'
+    analyticsTimeRange: 'month'
   });
+  const [userId, setUserId] = useState<number | null>(null);
 
-  // Load settings from localStorage on component mount
+  // Load settings from user-scoped localStorage on component mount
   useEffect(() => {
-    const savedSettings = localStorage.getItem('habitvault-settings');
-    if (savedSettings) {
-      const parsed = JSON.parse(savedSettings);
-      setSettings(parsed);
+    const currentUserId = getCurrentUserId();
+    if (currentUserId) {
+      setUserId(currentUserId);
+      const userSettings = getUserPreferences(currentUserId);
+      setSettings({
+        darkMode: userSettings.darkMode,
+        motivationalQuotes: userSettings.motivationalQuotes,
+        analyticsTimeRange: userSettings.analyticsTimeRange
+      });
       
       // Apply dark mode if enabled
-      if (parsed.darkMode) {
+      if (userSettings.darkMode) {
         document.documentElement.classList.add('dark');
       } else {
         document.documentElement.classList.remove('dark');
@@ -34,11 +41,13 @@ export function Settings() {
     }
   }, []);
 
-  // Save settings to localStorage whenever they change
+  // Save settings to user-scoped localStorage whenever they change
   const updateSetting = <K extends keyof UserSettings>(key: K, value: UserSettings[K]) => {
+    if (!userId) return;
+    
     const newSettings = { ...settings, [key]: value };
     setSettings(newSettings);
-    localStorage.setItem('habitvault-settings', JSON.stringify(newSettings));
+    updateUserPreference(userId, key, value);
     
     // Apply dark mode immediately
     if (key === 'darkMode') {
@@ -140,15 +149,15 @@ export function Settings() {
               </p>
             </div>
             <Select
-              value={settings.heatmapView}
-              onValueChange={(value: 'weekly' | 'monthly') => updateSetting('heatmapView', value)}
+              value={settings.analyticsTimeRange}
+              onValueChange={(value: 'week' | 'month') => updateSetting('analyticsTimeRange', value)}
             >
               <SelectTrigger className="w-32">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="weekly">Weekly</SelectItem>
-                <SelectItem value="monthly">Monthly</SelectItem>
+                <SelectItem value="week">Weekly</SelectItem>
+                <SelectItem value="month">Monthly</SelectItem>
               </SelectContent>
             </Select>
           </div>

@@ -49,11 +49,9 @@ export function Sidebar({ activeTab, onTabChange, onLogout }: SidebarProps) {
   ];
 
   return (
-    <Card className={`h-full transition-all duration-300 ${
-      isMinimized ? 'w-16' : 'w-64'
-    } flex flex-col`}>
-      {/* Sidebar Header */}
-      <div className="p-4 border-b flex items-center justify-between">
+    <div className="h-full flex flex-col bg-card">
+      {/* Sidebar Header - matches main header height */}
+      <div className="h-16 px-4 border-b flex items-center justify-between">
         {!isMinimized && (
           <h2 className="font-semibold text-lg">Navigation</h2>
         )}
@@ -112,6 +110,6 @@ export function Sidebar({ activeTab, onTabChange, onLogout }: SidebarProps) {
           {!isMinimized && <span>Logout</span>}
         </Button>
       </div>
-    </Card>
+    </div>
   );
 }

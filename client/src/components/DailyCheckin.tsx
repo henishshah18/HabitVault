@@ -21,6 +21,7 @@ interface Habit {
   longest_streak: number;
   is_due_today: boolean;
   is_completed_today: boolean;
+  completion_timestamp?: string;
 }
 
 interface DailyCheckinProps {
@@ -303,11 +304,11 @@ export function DailyCheckin({ onLogout, onNewHabit }: DailyCheckinProps) {
                           <Trophy className="w-4 h-4 text-yellow-500" />
                           <span className="text-sm text-muted-foreground">Best: {habit.longest_streak}</span>
                         </div>
-                        {isCompleted && (
+                        {isCompleted && habit.completion_timestamp && (
                           <div className="flex items-center space-x-2 pt-1 border-t border-gray-200 dark:border-gray-700">
                             <Clock className="w-3 h-3 text-green-600" />
                             <span className="text-xs text-green-600">
-                              Completed at {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              Completed at {new Date(habit.completion_timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                             </span>
                           </div>
                         )}

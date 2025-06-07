@@ -18,6 +18,7 @@ interface Habit {
   longest_streak: number;
   is_due_today: boolean;
   is_completed_today: boolean;
+  completion_timestamp?: string;
 }
 
 interface ManageHabitsProps {

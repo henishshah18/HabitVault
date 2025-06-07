@@ -133,7 +133,17 @@ class Habit(db.Model):
         ).first()
         return completion is not None
     
+    def get_completion_timestamp_today(self):
+        """Get the completion timestamp for today if completed"""
+        today = date.today()
+        completion = HabitCompletion.query.filter_by(
+            habit_id=self.id,
+            completion_date=today
+        ).first()
+        return completion.completed_at.isoformat() if completion else None
+
     def to_dict(self):
+        completion_timestamp = self.get_completion_timestamp_today()
         return {
             'id': self.id,
             'unique_id': self.unique_id,
@@ -144,7 +154,8 @@ class Habit(db.Model):
             'current_streak': self.current_streak,
             'longest_streak': self.longest_streak,
             'is_due_today': self.is_due_today(),
-            'is_completed_today': self.is_completed_today()
+            'is_completed_today': self.is_completed_today(),
+            'completion_timestamp': completion_timestamp
         }
     
     def __repr__(self):

@@ -37,8 +37,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         method: req.method,
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          ...req.headers
+          'Accept': 'application/json'
         }
       };
 
@@ -57,8 +56,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      const data = await response.json();
-      res.status(response.status).json(data);
+      // Handle empty responses (like OPTIONS requests)
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        const data = await response.json();
+        res.status(response.status).json(data);
+      } else {
+        // For OPTIONS or empty responses, just return status
+        res.status(response.status).end();
+      }
     } catch (err: any) {
       log(`Proxy error: ${err.message}`, "error");
       res.status(503).json({ 

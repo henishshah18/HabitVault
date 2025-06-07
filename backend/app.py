@@ -31,7 +31,8 @@ def create_app():
     db.init_app(app)
     CORS(app, origins=['http://localhost:5000', 'http://localhost:3000'], 
          methods=['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-         allow_headers=['Content-Type', 'Authorization', 'Accept'])
+         allow_headers=['Content-Type', 'Authorization', 'Accept'],
+         supports_credentials=True)
     
     # Initialize database and create tables
     with app.app_context():

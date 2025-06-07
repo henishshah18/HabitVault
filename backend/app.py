@@ -91,7 +91,8 @@ def calculate_current_streak(habit):
             streak += 1
             current_date -= timedelta(days=1)
         else:
-            # Streak is broken
+            # Streak is broken - reset to 0
+            streak = 0
             break
             
         # Safety check to avoid infinite loops (limit to 365 days)

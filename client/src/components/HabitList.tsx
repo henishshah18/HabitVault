@@ -3,16 +3,23 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
-import { Edit, Trash2, Plus, Calendar, Target } from 'lucide-react';
+import { Edit, Trash2, Plus, Calendar, Target, Flame, Trophy, CheckCircle2 } from 'lucide-react';
 import { HabitForm } from '@/components/HabitForm';
 
 interface Habit {
   id: number;
+  unique_id: string;
   name: string;
   target_days: string;
   start_date: string;
   user_id: number;
+  current_streak: number;
+  longest_streak: number;
+  is_due_today: boolean;
+  is_completed_today: boolean;
 }
 
 interface HabitListProps {

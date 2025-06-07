@@ -379,6 +379,90 @@ def create_app():
             db.session.rollback()
             return jsonify({'error': f'Failed to delete habit: {str(e)}'}), 500
 
+    @app.route('/api/habits/<int:habit_id>/complete', methods=['POST'])
+    @jwt_required()
+    def complete_habit(habit_id):
+        """Mark a habit as completed for today"""
+        try:
+            current_user_id = int(get_jwt_identity())
+            
+            # Find habit belonging to current user
+            habit = Habit.query.filter_by(id=habit_id, user_id=current_user_id).first()
+            
+            if not habit:
+                return jsonify({'error': 'Habit not found or access denied'}), 404
+            
+            # Check if already completed today
+            today = date.today()
+            existing_completion = HabitCompletion.query.filter_by(
+                habit_id=habit_id,
+                completion_date=today
+            ).first()
+            
+            if existing_completion:
+                return jsonify({'error': 'Habit already completed today'}), 409
+            
+            # Create completion record
+            completion = HabitCompletion(habit_id=habit_id, completion_date=today)
+            db.session.add(completion)
+            
+            # Update streaks
+            habit.current_streak += 1
+            if habit.current_streak > habit.longest_streak:
+                habit.longest_streak = habit.current_streak
+            
+            db.session.commit()
+            
+            return jsonify({
+                'message': 'Habit completed successfully',
+                'habit': habit.to_dict(),
+                'completion': completion.to_dict()
+            }), 200
+            
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({'error': f'Failed to complete habit: {str(e)}'}), 500
+
+    @app.route('/api/habits/<int:habit_id>/uncomplete', methods=['POST'])
+    @jwt_required()
+    def uncomplete_habit(habit_id):
+        """Unmark a habit as completed for today"""
+        try:
+            current_user_id = int(get_jwt_identity())
+            
+            # Find habit belonging to current user
+            habit = Habit.query.filter_by(id=habit_id, user_id=current_user_id).first()
+            
+            if not habit:
+                return jsonify({'error': 'Habit not found or access denied'}), 404
+            
+            # Find today's completion
+            today = date.today()
+            completion = HabitCompletion.query.filter_by(
+                habit_id=habit_id,
+                completion_date=today
+            ).first()
+            
+            if not completion:
+                return jsonify({'error': 'Habit not completed today'}), 404
+            
+            # Remove completion record
+            db.session.delete(completion)
+            
+            # Reset current streak (simple approach - can be enhanced)
+            habit.current_streak = max(0, habit.current_streak - 1)
+            
+            db.session.commit()
+            
+            return jsonify({
+                'message': 'Habit uncompleted successfully',
+                'habit': habit.to_dict()
+            }), 200
+            
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({'error': f'Failed to uncomplete habit: {str(e)}'}), 500
+
     @app.route('/api/users', methods=['POST'])
     def create_user():
         """Create a new user (legacy endpoint)"""

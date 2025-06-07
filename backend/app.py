@@ -469,6 +469,8 @@ def create_app():
                 habit_dict['is_completed_today'] = completion is not None
                 if completion:
                     habit_dict['completion_timestamp'] = completion.completed_at.isoformat()
+                else:
+                    habit_dict['completion_timestamp'] = None
                 habits_data.append(habit_dict)
             
             return jsonify({

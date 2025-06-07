@@ -3,10 +3,14 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
-import { HabitList } from './HabitList';
-import { User as UserIcon, Target, BarChart3 } from 'lucide-react';
+import { Sidebar } from './Sidebar';
+import { DailyCheckin } from './DailyCheckin';
+import { ManageHabits } from './ManageHabits';
+import { AnalyticsDashboard } from './AnalyticsDashboard';
+import { Settings } from './Settings';
+import { MotivationalQuote } from './MotivationalQuote';
+import { User as UserIcon, Vault, Heart } from 'lucide-react';
 
 interface User {
   id: number;
@@ -21,6 +25,7 @@ export function Dashboard({ onLogout }: DashboardProps) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+  const [activeTab, setActiveTab] = useState('daily-checkin');
   const { toast } = useToast();
 
   useEffect(() => {

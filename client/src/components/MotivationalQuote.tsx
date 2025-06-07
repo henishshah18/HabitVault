@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Quote } from 'lucide-react';
+import { getCurrentUserId, getUserPreferences } from '@/lib/localStorage';
 
 const motivationalQuotes = [
   "The secret of getting ahead is getting started. - Mark Twain",
@@ -50,11 +51,11 @@ export function MotivationalQuote() {
   const [showQuotes, setShowQuotes] = useState(true);
 
   useEffect(() => {
-    // Check settings for motivational quotes preference
-    const savedSettings = localStorage.getItem('habitvault-settings');
-    if (savedSettings) {
-      const settings = JSON.parse(savedSettings);
-      setShowQuotes(settings.motivationalQuotes !== false);
+    // Check user-scoped settings for motivational quotes preference
+    const userId = getCurrentUserId();
+    if (userId) {
+      const userPreferences = getUserPreferences(userId);
+      setShowQuotes(userPreferences.motivationalQuotes !== false);
     }
 
     // Get a consistent quote for the day based on the date

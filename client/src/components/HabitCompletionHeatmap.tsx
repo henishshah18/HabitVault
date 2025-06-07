@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { getCurrentUserId, getUserPreferences, updateUserPreference } from '@/lib/localStorage';
 
 interface DayCompletion {
   date: string;
@@ -22,6 +23,17 @@ export function HabitCompletionHeatmap({ habitId }: HabitCompletionHeatmapProps)
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<ViewMode>('month');
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [userId, setUserId] = useState<number | null>(null);
+
+  // Initialize user preferences on mount
+  useEffect(() => {
+    const currentUserId = getCurrentUserId();
+    if (currentUserId) {
+      setUserId(currentUserId);
+      const preferences = getUserPreferences(currentUserId);
+      setViewMode(preferences.analyticsTimeRange);
+    }
+  }, []);
 
   useEffect(() => {
     fetchCompletionData();
@@ -310,7 +322,15 @@ export function HabitCompletionHeatmap({ habitId }: HabitCompletionHeatmapProps)
             </CardDescription>
           </div>
           <div className="flex items-center space-x-2">
-            <Select value={viewMode} onValueChange={(value: ViewMode) => setViewMode(value)}>
+            <Select 
+              value={viewMode} 
+              onValueChange={(value: ViewMode) => {
+                setViewMode(value);
+                if (userId) {
+                  updateUserPreference(userId, 'analyticsTimeRange', value);
+                }
+              }}
+            >
               <SelectTrigger className="w-32">
                 <SelectValue />
               </SelectTrigger>

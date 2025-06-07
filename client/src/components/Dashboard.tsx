@@ -9,6 +9,7 @@ import { AnalyticsDashboard } from './AnalyticsDashboard';
 import { Settings } from './Settings';
 import { MotivationalQuote } from './MotivationalQuote';
 import { User as UserIcon, Vault } from 'lucide-react';
+import { getCurrentUserId, clearUserData, initializeUserPreferences } from '@/lib/localStorage';
 
 interface User {
   id: number;
@@ -67,6 +68,10 @@ export function Dashboard({ onLogout }: DashboardProps) {
   }, [onLogout]);
 
   const handleLogout = () => {
+    const userId = getCurrentUserId();
+    if (userId) {
+      clearUserData(userId);
+    }
     localStorage.removeItem('authToken');
     localStorage.removeItem('userId');
     onLogout();

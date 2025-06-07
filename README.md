@@ -1,8 +1,6 @@
-# 🏰 HabitVault
+# HabitVault
 
 A modern, full-stack habit tracking application designed to help users build and maintain positive habits through daily tracking, streaks, and achievement milestones.
-
-![HabitVault Banner](attached_assets/banner.png)
 
 ## ✨ Features
 
@@ -16,7 +14,8 @@ A modern, full-stack habit tracking application designed to help users build and
 
 ## 🛠️ Tech Stack
 
-### Frontend
+### Frontend!
+
 - React 18 with TypeScript
 - TailwindCSS for styling
 - Radix UI components

@@ -15,41 +15,29 @@ interface MilestoneProgressProps {
 
 export function MilestoneProgress({ milestone }: MilestoneProgressProps) {
   return (
-    <Card className="border-none bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20">
-      <CardHeader className="pb-3">
-        <div className="flex items-center space-x-2">
-          <Trophy className="w-5 h-5 text-amber-600 dark:text-amber-400" />
-          <CardTitle className="text-lg">Perfect Days Journey</CardTitle>
-        </div>
-        <CardDescription>
-          {milestone.days_remaining > 0 
-            ? `${milestone.days_remaining} perfect days until ${milestone.next_milestone} day milestone`
-            : `You've reached the ${milestone.current_count} day milestone! Keep going!`
-          }
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        <div className="flex items-center justify-between text-sm">
-          <span className="flex items-center space-x-1">
-            <Star className="w-4 h-4 text-amber-500" />
-            <span>{milestone.current_count} perfect days</span>
-          </span>
-          <span className="text-muted-foreground">
-            Goal: {milestone.next_milestone} days
-          </span>
+    <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 p-4 rounded-lg border border-amber-200 dark:border-amber-800">
+      <div className="relative">
+        <div className="text-center mb-2">
+          <div className="text-sm text-amber-600 dark:text-amber-400">
+            🥉 Milestone 1: {milestone.next_milestone} Days!
+          </div>
         </div>
         
         <Progress 
           value={milestone.progress_percentage} 
-          className="h-3 bg-amber-100 dark:bg-amber-900/30"
+          className="h-3 bg-amber-200 dark:bg-amber-800/30"
         />
         
-        <div className="flex justify-between text-xs text-muted-foreground">
-          <span>{milestone.current_count}</span>
-          <span>{Math.round(milestone.progress_percentage)}% complete</span>
-          <span>{milestone.next_milestone}</span>
+        <div className="flex justify-between mt-2 text-sm">
+          <div className="flex items-center space-x-1">
+            <Star className="w-4 h-4 text-amber-500" fill="currentColor" />
+            <span className="text-amber-600 dark:text-amber-400">Perfect Days</span>
+          </div>
+          <span className="text-amber-600 dark:text-amber-400">
+            {milestone.current_count}/{milestone.next_milestone}
+          </span>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

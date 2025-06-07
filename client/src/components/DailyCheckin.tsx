@@ -292,6 +292,12 @@ export function DailyCheckin({ onLogout, onNewHabit }: DailyCheckinProps) {
                 );
               })}
             </div>
+            <div className="mt-6 flex justify-end">
+              <Button onClick={onNewHabit} className="flex items-center space-x-2">
+                <Plus className="w-4 h-4" />
+                <span>New Habit</span>
+              </Button>
+            </div>
           </CardContent>
         </Card>
       ) : (

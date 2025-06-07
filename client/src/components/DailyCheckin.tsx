@@ -134,10 +134,10 @@ export function DailyCheckin({ onLogout, onNewHabit }: DailyCheckinProps) {
     // Add loading state for this habit
     setLoadingHabits(prev => new Set(prev).add(habitId));
     
-    // Optimistic update - update UI immediately with consistent timestamp format
+    // Optimistic update - update UI immediately
     const optimisticHabits = habits.map(habit => 
       habit.id === habitId 
-        ? { ...habit, is_completed_today: !isCompleted, completion_timestamp: !isCompleted ? new Date().toISOString().replace('Z', '') : habit.completion_timestamp }
+        ? { ...habit, is_completed_today: !isCompleted, completion_timestamp: !isCompleted ? new Date().toISOString() : habit.completion_timestamp }
         : habit
     );
     setHabits(optimisticHabits);

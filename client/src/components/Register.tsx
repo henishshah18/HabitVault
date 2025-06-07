@@ -8,9 +8,10 @@ import { useToast } from '@/hooks/use-toast';
 
 interface RegisterProps {
   onSwitchToLogin: () => void;
+  onBackToHome?: () => void;
 }
 
-export function Register({ onSwitchToLogin }: RegisterProps) {
+export function Register({ onSwitchToLogin, onBackToHome }: RegisterProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -96,16 +97,27 @@ export function Register({ onSwitchToLogin }: RegisterProps) {
           <Button type="submit" className="w-full" disabled={isLoading}>
             {isLoading ? 'Creating Account...' : 'Create Account'}
           </Button>
-          <p className="text-sm text-center text-muted-foreground">
-            Already have an account?{' '}
-            <button
-              type="button"
-              onClick={onSwitchToLogin}
-              className="text-primary underline-offset-4 hover:underline"
-            >
-              Sign in
-            </button>
-          </p>
+          <div className="flex flex-col space-y-2">
+            <p className="text-sm text-center text-muted-foreground">
+              Already have an account?{' '}
+              <button
+                type="button"
+                onClick={onSwitchToLogin}
+                className="text-primary underline-offset-4 hover:underline"
+              >
+                Sign in
+              </button>
+            </p>
+            {onBackToHome && (
+              <button
+                type="button"
+                onClick={onBackToHome}
+                className="text-xs text-center text-muted-foreground hover:text-foreground transition-colors"
+              >
+                ← Back to Home
+              </button>
+            )}
+          </div>
         </CardFooter>
       </form>
     </Card>

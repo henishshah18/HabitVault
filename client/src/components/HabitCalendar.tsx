@@ -39,11 +39,9 @@ interface HabitCalendarProps {
 export function HabitCalendar({ habits: externalHabits, onDataUpdate }: HabitCalendarProps) {
   const [habits, setHabits] = useState<Habit[]>([]);
   const [loading, setLoading] = useState(true);
-  const [viewSwitching, setViewSwitching] = useState(false);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [viewMode, setViewMode] = useState<ViewMode>('month');
   const [calendarData, setCalendarData] = useState<CalendarDay[]>([]);
-  const [completionCache, setCompletionCache] = useState<Map<string, any>>(new Map());
 
   // Load view mode preference
   useEffect(() => {
@@ -55,19 +53,12 @@ export function HabitCalendar({ habits: externalHabits, onDataUpdate }: HabitCal
   }, []);
 
   // Save view mode preference
-  const handleViewModeChange = async (mode: ViewMode) => {
-    if (mode === viewMode) return;
-    
-    setViewSwitching(true);
+  const handleViewModeChange = (mode: ViewMode) => {
     setViewMode(mode);
     const userId = getCurrentUserId();
     if (userId) {
       updateUserPreference(userId, 'analyticsTimeRange', mode === 'week' ? 'week' : 'month');
     }
-    
-    // Regenerate calendar data for new view
-    await generateCalendarData();
-    setViewSwitching(false);
   };
 
   // Fetch habits data
@@ -154,17 +145,10 @@ export function HabitCalendar({ habits: externalHabits, onDataUpdate }: HabitCal
     }
   };
 
-  // Fetch completion data for a specific date range with caching and parallel requests
+  // Fetch completion data for a specific date range
   const fetchCompletionData = async (startDate: string, endDate: string) => {
     const token = localStorage.getItem('authToken');
     if (!token) return {};
-
-    const cacheKey = `${startDate}-${endDate}-${habits.map(h => h.id).join(',')}`;
-    
-    // Check cache first
-    if (completionCache.has(cacheKey)) {
-      return completionCache.get(cacheKey);
-    }
 
     const completionMap: { [date: string]: { completed: number; total: number } } = {};
 
@@ -177,8 +161,8 @@ export function HabitCalendar({ habits: externalHabits, onDataUpdate }: HabitCal
       completionMap[dateStr] = { completed: 0, total: 0 };
     }
 
-    // Fetch all habit histories in parallel
-    const historyPromises = habits.map(async (habit) => {
+    // Get completion data for each habit
+    for (const habit of habits) {
       try {
         const response = await fetch(`/api/habits/${habit.id}/history?start_date=${startDate}&end_date=${endDate}`, {
           headers: { 'Authorization': `Bearer ${token}` }
@@ -186,48 +170,35 @@ export function HabitCalendar({ habits: externalHabits, onDataUpdate }: HabitCal
 
         if (response.ok) {
           const historyData = await response.json();
-          return { habit, historyData };
-        }
-        return { habit, historyData: null };
-      } catch (error) {
-        console.error(`Failed to fetch history for habit ${habit.id}:`, error);
-        return { habit, historyData: null };
-      }
-    });
-
-    const historyResults = await Promise.all(historyPromises);
-
-    // Process all results
-    historyResults.forEach(({ habit, historyData }) => {
-      if (!historyData) return;
-
-      // Process each date in the range
-      for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-        const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-        const today = new Date();
-        const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-        
-        if (isHabitDueOnDate(habit, d)) {
-          completionMap[dateStr].total++;
           
-          // For today, use real-time completion status
-          if (dateStr === todayStr) {
-            if (habit.is_completed_today) {
-              completionMap[dateStr].completed++;
-            }
-          } else {
-            // For historical dates, check completion history
-            const completion = historyData.history?.find((h: any) => h.date === dateStr);
-            if (completion && completion.status === 'completed') {
-              completionMap[dateStr].completed++;
+          // Process each date in the range
+          for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+            const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+            const today = new Date();
+            const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+            
+            if (isHabitDueOnDate(habit, d)) {
+              completionMap[dateStr].total++;
+              
+              // For today, use real-time completion status
+              if (dateStr === todayStr) {
+                if (habit.is_completed_today) {
+                  completionMap[dateStr].completed++;
+                }
+              } else {
+                // For historical dates, check completion history
+                const completion = historyData.history?.find((h: any) => h.date === dateStr);
+                if (completion && completion.status === 'completed') {
+                  completionMap[dateStr].completed++;
+                }
+              }
             }
           }
         }
+      } catch (error) {
+        console.error(`Failed to fetch history for habit ${habit.id}:`, error);
       }
-    });
-
-    // Cache the result
-    setCompletionCache(prev => new Map(prev.set(cacheKey, completionMap)));
+    }
 
     return completionMap;
   };
@@ -237,10 +208,6 @@ export function HabitCalendar({ habits: externalHabits, onDataUpdate }: HabitCal
     if (habits.length === 0) {
       setCalendarData([]);
       return;
-    }
-
-    if (!viewSwitching) {
-      setLoading(true);
     }
 
     const today = new Date();
@@ -281,12 +248,12 @@ export function HabitCalendar({ habits: externalHabits, onDataUpdate }: HabitCal
     const completionData = await fetchCompletionData(startDateStr, endDateStr);
 
     const days: CalendarDay[] = [];
-    
+    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+
     for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
       const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-      const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
       const dayData = completionData[dateStr] || { completed: 0, total: 0 };
-      
+
       days.push({
         date: dateStr,
         dayNumber: d.getDate(),
@@ -299,20 +266,12 @@ export function HabitCalendar({ habits: externalHabits, onDataUpdate }: HabitCal
     }
     
     setCalendarData(days);
-    if (!viewSwitching) {
-      setLoading(false);
-    }
   };
 
-  // Update calendar when habits or date changes (but not viewMode - handled in handleViewModeChange)
+  // Update calendar when habits, date, or view mode changes
   useEffect(() => {
     generateCalendarData();
-  }, [habits, currentDate]);
-
-  // Clear cache when habits change
-  useEffect(() => {
-    setCompletionCache(new Map());
-  }, [habits]);
+  }, [habits, currentDate, viewMode]);
 
   // Navigation functions
   const navigatePrevious = () => {
@@ -397,7 +356,7 @@ export function HabitCalendar({ habits: externalHabits, onDataUpdate }: HabitCal
   }
 
   return (
-    <Card className={`transition-opacity duration-500 ${viewSwitching ? 'opacity-60' : 'opacity-100'}`}>
+    <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center space-x-2">
@@ -405,7 +364,7 @@ export function HabitCalendar({ habits: externalHabits, onDataUpdate }: HabitCal
             <span>Habit History Calendar</span>
           </CardTitle>
           <div className="flex items-center space-x-2">
-            <Select value={viewMode} onValueChange={(value: ViewMode) => handleViewModeChange(value)} disabled={viewSwitching}>
+            <Select value={viewMode} onValueChange={(value: ViewMode) => handleViewModeChange(value)}>
               <SelectTrigger className="w-32">
                 <SelectValue />
               </SelectTrigger>
@@ -418,13 +377,13 @@ export function HabitCalendar({ habits: externalHabits, onDataUpdate }: HabitCal
         </div>
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <Button variant="outline" size="sm" onClick={navigatePrevious} disabled={viewSwitching}>
+            <Button variant="outline" size="sm" onClick={navigatePrevious}>
               <ChevronLeft className="w-4 h-4" />
             </Button>
-            <Button variant="outline" size="sm" onClick={navigateNext} disabled={viewSwitching}>
+            <Button variant="outline" size="sm" onClick={navigateNext}>
               <ChevronRight className="w-4 h-4" />
             </Button>
-            <Button variant="outline" size="sm" onClick={navigateToday} disabled={viewSwitching}>
+            <Button variant="outline" size="sm" onClick={navigateToday}>
               Today
             </Button>
           </div>
@@ -449,42 +408,41 @@ export function HabitCalendar({ habits: externalHabits, onDataUpdate }: HabitCal
               className={`
                 aspect-square p-2 rounded-lg text-xs flex flex-col items-center justify-center
                 ${getCompletionColor(day.completionRatio, day.isToday)}
-                ${!day.isCurrentMonth && viewMode === 'month' ? 'opacity-30' : ''}
-                transition-colors duration-150
+                ${!day.isCurrentMonth ? 'opacity-50' : ''}
+                transition-colors duration-200
               `}
-              title={`${day.date}: ${day.completedHabits}/${day.totalHabits} habits completed`}
             >
-              <span className="font-medium">{day.dayNumber}</span>
+              <div className="font-semibold">{day.dayNumber}</div>
               {day.totalHabits > 0 && (
-                <span className="text-[10px] mt-1">
+                <div className="text-xs mt-1">
                   {day.completedHabits}/{day.totalHabits}
-                </span>
+                </div>
               )}
             </div>
           ))}
         </div>
         
         {/* Legend */}
-        <div className="flex items-center justify-center space-x-4 mt-4 text-xs text-muted-foreground">
+        <div className="mt-4 flex items-center justify-center space-x-4 text-xs text-muted-foreground">
           <div className="flex items-center space-x-1">
-            <div className="w-3 h-3 rounded bg-green-500"></div>
-            <span>Perfect</span>
+            <div className="w-3 h-3 bg-green-500 rounded"></div>
+            <span>100%</span>
           </div>
           <div className="flex items-center space-x-1">
-            <div className="w-3 h-3 rounded bg-green-400"></div>
-            <span>Great</span>
+            <div className="w-3 h-3 bg-green-400 rounded"></div>
+            <span>70%+</span>
           </div>
           <div className="flex items-center space-x-1">
-            <div className="w-3 h-3 rounded bg-yellow-400"></div>
-            <span>Good</span>
+            <div className="w-3 h-3 bg-yellow-400 rounded"></div>
+            <span>30%+</span>
           </div>
           <div className="flex items-center space-x-1">
-            <div className="w-3 h-3 rounded bg-orange-400"></div>
-            <span>Some</span>
+            <div className="w-3 h-3 bg-orange-400 rounded"></div>
+            <span>Partial</span>
           </div>
           <div className="flex items-center space-x-1">
-            <div className="w-3 h-3 rounded bg-gray-300"></div>
-            <span>None</span>
+            <div className="w-3 h-3 bg-gray-200 dark:bg-gray-700 rounded"></div>
+            <span>Incomplete</span>
           </div>
         </div>
       </CardContent>

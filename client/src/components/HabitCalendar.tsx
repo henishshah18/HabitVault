@@ -141,12 +141,12 @@ export function HabitCalendar({ habits: externalHabits, onDataUpdate }: HabitCal
 
     const completionMap: { [date: string]: { completed: number; total: number } } = {};
 
-    // Initialize all dates
+    // Initialize all dates using local timezone
     const start = new Date(startDate);
     const end = new Date(endDate);
     
     for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-      const dateStr = d.toISOString().split('T')[0];
+      const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
       completionMap[dateStr] = { completed: 0, total: 0 };
     }
 
@@ -162,14 +162,15 @@ export function HabitCalendar({ habits: externalHabits, onDataUpdate }: HabitCal
           
           // Process each date in the range
           for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-            const dateStr = d.toISOString().split('T')[0];
-            const today = new Date().toISOString().split('T')[0];
+            const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+            const today = new Date();
+            const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
             
             if (isHabitDueOnDate(habit, d)) {
               completionMap[dateStr].total++;
               
               // For today, use real-time completion status
-              if (dateStr === today) {
+              if (dateStr === todayStr) {
                 if (habit.is_completed_today) {
                   completionMap[dateStr].completed++;
                 }
@@ -238,14 +239,15 @@ export function HabitCalendar({ habits: externalHabits, onDataUpdate }: HabitCal
     const days: CalendarDay[] = [];
     
     for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
-      const dateStr = d.toISOString().split('T')[0];
+      const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
       const dayData = completionData[dateStr] || { completed: 0, total: 0 };
       
       days.push({
         date: dateStr,
         dayNumber: d.getDate(),
         isCurrentMonth: d.getMonth() === month,
-        isToday: dateStr === today.toISOString().split('T')[0],
+        isToday: dateStr === todayStr,
         completedHabits: dayData.completed,
         totalHabits: dayData.total,
         completionRatio: dayData.total > 0 ? dayData.completed / dayData.total : 0

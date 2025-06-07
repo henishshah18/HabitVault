@@ -125,24 +125,24 @@ export function HabitForm({ habit, onSuccess, onCancel }: HabitFormProps) {
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
       <Card className="w-full max-w-lg mx-auto max-h-[90vh] overflow-y-auto">
         <CardHeader>
-        <div className="flex items-center space-x-3">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onCancel}
-            className="p-2"
-          >
-            <ArrowLeft className="w-4 h-4" />
-          </Button>
-          <div>
-            <CardTitle>{habit ? 'Edit Habit' : 'Add New Habit'}</CardTitle>
-            <CardDescription>
-              {habit ? 'Update your habit details' : 'Create a new habit to track'}
-            </CardDescription>
+          <div className="flex items-center space-x-3">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onCancel}
+              className="p-2"
+            >
+              <ArrowLeft className="w-4 h-4" />
+            </Button>
+            <div>
+              <CardTitle>{habit ? 'Edit Habit' : 'Add New Habit'}</CardTitle>
+              <CardDescription>
+                {habit ? 'Update your habit details' : 'Create a new habit to track'}
+              </CardDescription>
+            </div>
           </div>
-        </div>
-      </CardHeader>
-      <form onSubmit={handleSubmit}>
+        </CardHeader>
+        <form onSubmit={handleSubmit}>
         <CardContent className="space-y-6">
           {error && (
             <Alert variant="destructive">
@@ -245,7 +245,7 @@ export function HabitForm({ habit, onSuccess, onCancel }: HabitFormProps) {
             {isLoading ? 'Saving...' : (habit ? 'Update' : 'Create')}
           </Button>
         </CardFooter>
-      </form>
+        </form>
       </Card>
     </div>
   );

@@ -68,12 +68,12 @@ export function HabitCompletionHeatmap({ habitId }: HabitCompletionHeatmapProps)
       const { startDate, endDate } = getDateRange(viewMode, currentDate);
       
       // Get all habits with fresh data (no cache)
-      const habitsResponse = await fetch('/api/habits?' + new URLSearchParams({
-        _t: Date.now().toString()
-      }), {
+      const habitsResponse = await fetch('/api/habits', {
         headers: { 
           'Authorization': `Bearer ${token}`,
-          'Cache-Control': 'no-cache'
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
         }
       });
 
@@ -141,13 +141,13 @@ export function HabitCompletionHeatmap({ habitId }: HabitCompletionHeatmapProps)
             if (d >= habitStartDate && isDueOnDate(habit.target_days, d)) {
               dayData.total_habits++;
               
-              // For today, use real-time completion status from habit object
+              // Always use the habit's current completion status for today
               if (dateStr === today) {
                 if (habit.is_completed_today) {
                   dayData.completed_habits++;
                 }
               } else {
-                // For other days, check history
+                // For historical days, check completion history
                 const completionForDay = historyEntry.history.find((h: any) => h.date === dateStr);
                 if (completionForDay && completionForDay.status === 'completed') {
                   dayData.completed_habits++;

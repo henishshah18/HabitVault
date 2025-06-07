@@ -39,10 +39,24 @@ export function HabitCompletionHeatmap({ habitId }: HabitCompletionHeatmapProps)
     fetchCompletionData();
   }, [habitId, viewMode, currentDate]);
 
+  useEffect(() => {
+    const handleHabitCompletionChange = () => {
+      fetchCompletionData();
+    };
+
+    window.addEventListener('habitCompletionChanged', handleHabitCompletionChange);
+    return () => {
+      window.removeEventListener('habitCompletionChanged', handleHabitCompletionChange);
+    };
+  }, []);
+
   const fetchCompletionData = async () => {
     try {
       const token = localStorage.getItem('authToken');
-      if (!token) return;
+      if (!token) {
+        setLoading(false);
+        return;
+      }
 
       const { startDate, endDate } = getDateRange(viewMode, currentDate);
       
@@ -51,7 +65,11 @@ export function HabitCompletionHeatmap({ habitId }: HabitCompletionHeatmapProps)
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
-      if (!habitsResponse.ok) return;
+      if (!habitsResponse.ok) {
+        console.error('Failed to fetch habits:', habitsResponse.status);
+        setLoading(false);
+        return;
+      }
       
       const habitsData = await habitsResponse.json();
       const habits = habitsData.habits || [];

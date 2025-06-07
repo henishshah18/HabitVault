@@ -29,6 +29,17 @@ export function AnalyticsDashboard() {
     return () => clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+    const handleHabitCompletionChange = () => {
+      fetchHabits();
+    };
+
+    window.addEventListener('habitCompletionChanged', handleHabitCompletionChange);
+    return () => {
+      window.removeEventListener('habitCompletionChanged', handleHabitCompletionChange);
+    };
+  }, []);
+
   const fetchHabits = async () => {
     try {
       const token = localStorage.getItem('authToken');

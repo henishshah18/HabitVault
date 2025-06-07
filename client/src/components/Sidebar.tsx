@@ -51,7 +51,7 @@ export function Sidebar({ activeTab, onTabChange, onLogout }: SidebarProps) {
   return (
     <div className={`h-full flex flex-col bg-card border-r transition-all duration-300 ${isMinimized ? 'w-16' : 'w-64'}`}>
       {/* Sidebar Header - matches main header height */}
-      <div className={`h-16 border-b flex items-center ${isMinimized ? 'justify-start px-2' : 'justify-between px-4'}`}>
+      <div className={`h-16 border-b flex items-center ${isMinimized ? 'justify-center px-2' : 'justify-between px-4'}`}>
         {!isMinimized && (
           <h2 className="font-semibold text-lg">Navigation</h2>
         )}
@@ -59,7 +59,7 @@ export function Sidebar({ activeTab, onTabChange, onLogout }: SidebarProps) {
           variant="ghost"
           size="sm"
           onClick={() => setIsMinimized(!isMinimized)}
-          className="p-2"
+          className={`p-2 ${isMinimized ? 'w-full flex justify-center' : ''}`}
         >
           {isMinimized ? <Menu className="w-4 h-4" /> : <X className="w-4 h-4" />}
         </Button>

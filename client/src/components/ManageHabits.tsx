@@ -283,6 +283,15 @@ export function ManageHabits({ onLogout }: ManageHabitsProps) {
           )}
         </CardContent>
       </Card>
+
+      {/* Habit Form Modal */}
+      {showForm && (
+        <HabitForm
+          habit={editingHabit}
+          onSuccess={handleFormSuccess}
+          onCancel={handleFormCancel}
+        />
+      )}
     </div>
   );
 }

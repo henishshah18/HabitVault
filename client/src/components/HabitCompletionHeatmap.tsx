@@ -90,43 +90,53 @@ export function HabitCompletionHeatmap({ habitId }: HabitCompletionHeatmapProps)
         });
       }
 
-      // Fetch completion history for each habit
-      for (const habit of habits) {
-        try {
-          const historyResponse = await fetch(`/api/habits/${habit.id}/history?start_date=${startDate}&end_date=${endDate}`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-          });
-
-          if (historyResponse.ok) {
-            const historyData = await historyResponse.json();
-            const completionHistory = historyData.history || [];
+      // Process each habit and build completion data
+      const habitStart = new Date(start);
+      const today = new Date().toISOString().split('T')[0];
+      
+      for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+        const dateStr = d.toISOString().split('T')[0];
+        const dayData = completionMap.get(dateStr);
+        
+        if (dayData) {
+          // Count habits due on this day
+          for (const habit of habits) {
+            const habitStartDate = new Date(habit.start_date);
             
-            const habitStart = new Date(habit.start_date);
-            
-            for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-              const dateStr = d.toISOString().split('T')[0];
+            // Check if habit is due on this day
+            if (d >= habitStartDate && isDueOnDate(habit.target_days, d)) {
+              dayData.total_habits++;
               
-              // Check if habit is due on this day
-              if (d >= habitStart && isDueOnDate(habit.target_days, d)) {
-                const dayData = completionMap.get(dateStr);
-                if (dayData) {
-                  dayData.total_habits++;
-                  
-                  // Check if habit was completed on this day
-                  const completionForDay = completionHistory.find((h: any) => h.date === dateStr);
-                  if (completionForDay && completionForDay.status === 'completed') {
-                    dayData.completed_habits++;
+              // For today, use the real-time completion status
+              if (dateStr === today) {
+                if (habit.is_completed_today) {
+                  dayData.completed_habits++;
+                }
+              } else {
+                // For other days, try to fetch from history
+                try {
+                  const historyResponse = await fetch(`/api/habits/${habit.id}/history?start_date=${dateStr}&end_date=${dateStr}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                  });
+
+                  if (historyResponse.ok) {
+                    const historyData = await historyResponse.json();
+                    const completionHistory = historyData.history || [];
+                    
+                    const completionForDay = completionHistory.find((h: any) => h.date === dateStr);
+                    if (completionForDay && completionForDay.status === 'completed') {
+                      dayData.completed_habits++;
+                    }
                   }
-                  
-                  dayData.completion_ratio = dayData.total_habits > 0 ? dayData.completed_habits / dayData.total_habits : 0;
-                  completionMap.set(dateStr, dayData);
+                } catch (error) {
+                  console.error(`Failed to fetch history for habit ${habit.id} on ${dateStr}:`, error);
                 }
               }
             }
           }
-        } catch (error) {
-          console.error(`Failed to fetch history for habit ${habit.id}:`, error);
-          // Continue processing other habits even if one fails
+          
+          dayData.completion_ratio = dayData.total_habits > 0 ? dayData.completed_habits / dayData.total_habits : 0;
+          completionMap.set(dateStr, dayData);
         }
       }
 

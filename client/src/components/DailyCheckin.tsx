@@ -162,6 +162,7 @@ export function DailyCheckin({ onLogout, onNewHabit }: DailyCheckinProps) {
         toast({
           title: 'Success',
           description: `Habit ${isCompleted ? 'uncompleted' : 'completed'} successfully`,
+          duration: 2000,
         });
       } else {
         toast({
@@ -273,11 +274,11 @@ export function DailyCheckin({ onLogout, onNewHabit }: DailyCheckinProps) {
                         <Checkbox
                           checked={isCompleted}
                           onCheckedChange={() => handleToggleCompletion(habit.id, isCompleted)}
+                          className="data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600"
                         />
                         <div className="flex-1">
-                          <CardTitle className="text-lg flex items-center space-x-2">
+                          <CardTitle className="text-lg">
                             <span>{habit.name}</span>
-                            {isCompleted && <CheckCircle2 className="w-4 h-4 text-green-600" />}
                           </CardTitle>
                           <div className="flex items-center space-x-2 mt-1">
                             <Badge variant={getTargetDaysVariant(habit.target_days)}>

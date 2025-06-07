@@ -246,7 +246,7 @@ export function ManageHabits({ onLogout }: ManageHabitsProps) {
                   <CardContent className="space-y-3">
                     <div className="flex items-center space-x-2 text-sm text-muted-foreground">
                       <Calendar className="w-4 h-4" />
-                      <span>Started: {new Date(habit.start_date).toLocaleDateString()}</span>
+                      <span>Start Date: {new Date(habit.start_date).toLocaleDateString()}</span>
                     </div>
                     
                     <div className="space-y-2">

@@ -27,16 +27,11 @@ export const getUserPreferences = (userId: number): UserPreferences => {
     const storageKey = getUserStorageKey(userId, 'preferences');
     const stored = localStorage.getItem(storageKey);
     
-    console.log('Loading preferences:', { userId, storageKey, stored });
-    
     if (stored) {
       const parsed = JSON.parse(stored);
-      const result = { ...DEFAULT_PREFERENCES, ...parsed };
-      console.log('Loaded preferences:', result);
-      return result;
+      return { ...DEFAULT_PREFERENCES, ...parsed };
     }
     
-    console.log('No stored preferences found, using defaults:', DEFAULT_PREFERENCES);
     return DEFAULT_PREFERENCES;
   } catch (error) {
     console.error('Failed to load user preferences:', error);
@@ -62,15 +57,7 @@ export const saveUserPreferences = (userId: number, preferences: Partial<UserPre
     
     const updated = { ...current, ...preferences };
     
-    console.log('Saving preferences:', { userId, storageKey, current, preferences, updated });
-    
     localStorage.setItem(storageKey, JSON.stringify(updated));
-    
-    // Verify it was saved
-    const saved = localStorage.getItem(storageKey);
-    console.log('Verification - saved value:', saved);
-    
-    console.log('Preferences saved to localStorage successfully');
   } catch (error) {
     console.error('Failed to save user preferences:', error);
   }
@@ -120,8 +107,6 @@ export const getCurrentUserId = (): number | null => {
 // Initialize user preferences on login
 export const initializeUserPreferences = (userId: number): UserPreferences => {
   const preferences = getUserPreferences(userId);
-  
-  console.log('Initializing user preferences:', preferences);
   
   // Apply dark mode immediately
   if (preferences.darkMode) {

@@ -76,7 +76,6 @@ export function Settings() {
     // Save immediately to localStorage
     if (userId) {
       saveUserPreferences(userId, { [key]: value });
-      console.log('Auto-saved setting:', key, value);
       
       // Update original settings to reflect the saved state
       setOriginalSettings(newSettings);
@@ -208,27 +207,7 @@ export function Settings() {
         </CardContent>
       </Card>
 
-      {/* Save Button - Always visible */}
-      <div className="flex justify-end">
-        <Button
-          onClick={saveSettings}
-          disabled={!hasChanges || isSaving}
-          variant={hasChanges ? "default" : "secondary"}
-          className={hasChanges ? "bg-blue-600 hover:bg-blue-700" : ""}
-        >
-          {isSaving ? (
-            <>
-              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-              Saved
-            </>
-          ) : (
-            <>
-              <Save className="w-4 h-4 mr-2" />
-              Save Settings
-            </>
-          )}
-        </Button>
-      </div>
+
     </div>
   );
 }

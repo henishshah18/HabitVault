@@ -345,7 +345,7 @@ export function HabitCalendar({ habits: externalHabits, onDataUpdate }: HabitCal
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
             <Calendar className="w-5 h-5" />
-            <span>Habit Calendar</span>
+            <span>Habit History Calendar</span>
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -363,7 +363,7 @@ export function HabitCalendar({ habits: externalHabits, onDataUpdate }: HabitCal
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center space-x-2">
             <Calendar className="w-5 h-5" />
-            <span>Habit Calendar</span>
+            <span>Habit History Calendar</span>
           </CardTitle>
           <div className="flex items-center space-x-2">
             <Select value={viewMode} onValueChange={(value: ViewMode) => handleViewModeChange(value)}>

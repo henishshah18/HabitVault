@@ -337,19 +337,12 @@ export function DailyCheckin({ onLogout, onNewHabit }: DailyCheckinProps) {
                   >
                     <CardHeader className="pb-3">
                       <div className="flex items-center space-x-3">
-                        <div className="relative">
-                          <Checkbox
-                            checked={isCompleted}
-                            onCheckedChange={() => handleToggleCompletion(habit.id, isCompleted)}
-                            className="data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600"
-                            disabled={isLoading}
-                          />
-                          {isLoading && (
-                            <div className="absolute inset-0 flex items-center justify-center">
-                              <div className="w-3 h-3 border border-gray-400 border-t-blue-500 rounded-full animate-spin"></div>
-                            </div>
-                          )}
-                        </div>
+                        <Checkbox
+                          checked={isCompleted}
+                          onCheckedChange={() => handleToggleCompletion(habit.id, isCompleted)}
+                          className="data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600"
+                          disabled={isLoading}
+                        />
                         <div className="flex-1">
                           <CardTitle className="text-lg">
                             <span>{habit.name}</span>

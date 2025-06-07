@@ -17,14 +17,26 @@ const motivationalQuotes = [
 
 export function MotivationalQuote() {
   const [currentQuote, setCurrentQuote] = useState('');
+  const [showQuotes, setShowQuotes] = useState(true);
 
   useEffect(() => {
+    // Check settings for motivational quotes preference
+    const savedSettings = localStorage.getItem('habitvault-settings');
+    if (savedSettings) {
+      const settings = JSON.parse(savedSettings);
+      setShowQuotes(settings.motivationalQuotes !== false);
+    }
+
     // Get a consistent quote for the day based on the date
     const today = new Date();
     const dayOfYear = Math.floor((today.getTime() - new Date(today.getFullYear(), 0, 0).getTime()) / 86400000);
     const quoteIndex = dayOfYear % motivationalQuotes.length;
     setCurrentQuote(motivationalQuotes[quoteIndex]);
   }, []);
+
+  if (!showQuotes) {
+    return null;
+  }
 
   return (
     <Card className="border-none bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20">

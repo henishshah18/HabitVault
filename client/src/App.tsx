@@ -20,9 +20,21 @@ function AuthApp() {
   useEffect(() => {
     // Check if user is already logged in
     const token = localStorage.getItem('authToken');
-    if (token) {
+    const storedUserId = localStorage.getItem('userId');
+    
+    if (token && storedUserId) {
       setIsAuthenticated(true);
       setCurrentView('dashboard');
+      
+      // Apply saved user preferences on login
+      const userId = parseInt(storedUserId);
+      const { getUserPreferences } = require('@/lib/localStorage');
+      const userPrefs = getUserPreferences(userId);
+      if (userPrefs.darkMode) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
     }
   }, []);
 

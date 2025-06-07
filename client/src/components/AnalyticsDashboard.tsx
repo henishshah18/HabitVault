@@ -1,75 +1,181 @@
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { BarChart3, Calendar, TrendingUp } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { BarChart3, TrendingUp, Calendar, Target } from 'lucide-react';
+import { HabitHistoryView } from './HabitHistoryView';
+
+interface Habit {
+  id: number;
+  unique_id: string;
+  name: string;
+  target_days: string;
+  start_date: string;
+  user_id: number;
+  current_streak: number;
+  longest_streak: number;
+  is_due_today: boolean;
+  is_completed_today: boolean;
+}
 
 export function AnalyticsDashboard() {
+  const [habits, setHabits] = useState<Habit[]>([]);
+  const [selectedHabitId, setSelectedHabitId] = useState<number | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchHabits();
+  }, []);
+
+  const fetchHabits = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
+      const response = await fetch('/api/habits', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setHabits(data.habits || []);
+        if (data.habits && data.habits.length > 0) {
+          setSelectedHabitId(data.habits[0].id);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to fetch habits:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const totalHabits = habits.length;
+  const averageStreak = habits.length > 0 
+    ? Math.round(habits.reduce((sum, habit) => sum + habit.current_streak, 0) / habits.length)
+    : 0;
+  const longestStreak = habits.reduce((max, habit) => Math.max(max, habit.longest_streak), 0);
+  const dueTodayHabits = habits.filter(h => h.is_due_today);
+  const completionRate = dueTodayHabits.length > 0
+    ? Math.round((dueTodayHabits.filter(h => h.is_completed_today).length / dueTodayHabits.length) * 100)
+    : 0;
+
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <BarChart3 className="w-5 h-5" />
-            <span>Analytics Dashboard</span>
-          </CardTitle>
-          <CardDescription>
-            Track your habit progress and insights over time
-          </CardDescription>
-        </CardHeader>
-      </Card>
+      <div>
+        <h1 className="text-3xl font-bold">Analytics Dashboard</h1>
+        <p className="text-muted-foreground">
+          Track your progress and analyze your habit patterns
+        </p>
+      </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <Calendar className="w-5 h-5" />
-              <span>Habit Calendar</span>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Total Habits
             </CardTitle>
-            <CardDescription>
-              Visual heatmap of your habit completion
-            </CardDescription>
+            <Target className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-center py-8 text-muted-foreground">
-              <Calendar className="w-12 h-12 mx-auto mb-4 opacity-50" />
-              <h3 className="text-lg font-semibold mb-2">Calendar View Coming Soon</h3>
-              <p>Interactive calendar showing your habit completion patterns</p>
-            </div>
+            <div className="text-2xl font-bold">{totalHabits}</div>
+            <p className="text-xs text-muted-foreground">
+              active habits
+            </p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <TrendingUp className="w-5 h-5" />
-              <span>Progress Trends</span>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Average Streak
             </CardTitle>
-            <CardDescription>
-              Charts and insights about your progress
-            </CardDescription>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-center py-8 text-muted-foreground">
-              <TrendingUp className="w-12 h-12 mx-auto mb-4 opacity-50" />
-              <h3 className="text-lg font-semibold mb-2">Progress Charts Coming Soon</h3>
-              <p>Detailed analytics and trend visualization</p>
-            </div>
+            <div className="text-2xl font-bold">{averageStreak}</div>
+            <p className="text-xs text-muted-foreground">
+              days average
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Today's Rate
+            </CardTitle>
+            <BarChart3 className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{completionRate}%</div>
+            <p className="text-xs text-muted-foreground">
+              completion rate
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Longest Streak
+            </CardTitle>
+            <Calendar className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{longestStreak}</div>
+            <p className="text-xs text-muted-foreground">
+              best performance
+            </p>
           </CardContent>
         </Card>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Habit Statistics</CardTitle>
-          <CardDescription>
-            Overview of your habit tracking performance
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-8 text-muted-foreground">
-            <h3 className="text-lg font-semibold mb-2">Statistics Coming Soon</h3>
-            <p>Comprehensive statistics about your habit completion rates, streaks, and more</p>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-bold">Habit History</h2>
+          {habits.length > 0 && (
+            <Select
+              value={selectedHabitId?.toString()}
+              onValueChange={(value) => setSelectedHabitId(parseInt(value))}
+            >
+              <SelectTrigger className="w-64">
+                <SelectValue placeholder="Select a habit" />
+              </SelectTrigger>
+              <SelectContent>
+                {habits.map((habit) => (
+                  <SelectItem key={habit.id} value={habit.id.toString()}>
+                    {habit.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+        </div>
+
+        {loading ? (
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-center py-8">
+                <div className="w-6 h-6 border-2 border-blue-300 border-t-blue-600 rounded-full animate-spin" />
+              </div>
+            </CardContent>
+          </Card>
+        ) : habits.length === 0 ? (
+          <Card>
+            <CardContent className="text-center py-12">
+              <BarChart3 className="w-16 h-16 mx-auto mb-4 opacity-50" />
+              <h3 className="text-xl font-semibold mb-2">No Habits Found</h3>
+              <p className="text-muted-foreground">
+                Create some habits to see your analytics and history
+              </p>
+            </CardContent>
+          </Card>
+        ) : selectedHabitId ? (
+          <HabitHistoryView habitId={selectedHabitId} />
+        ) : null}
+      </div>
     </div>
   );
 }

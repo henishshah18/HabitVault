@@ -4,7 +4,7 @@ from flask_jwt_extended import JWTManager, jwt_required, create_access_token, ge
 from backend.models import db, User, Habit, HabitCompletion
 from backend.config import Config
 from werkzeug.security import generate_password_hash, check_password_hash
-from datetime import timedelta, date
+from datetime import timedelta, date, datetime
 import os
 
 def initialize_database():
@@ -462,6 +462,78 @@ def create_app():
         except Exception as e:
             db.session.rollback()
             return jsonify({'error': f'Failed to uncomplete habit: {str(e)}'}), 500
+
+    @app.route('/api/habits/<int:habit_id>/history', methods=['GET'])
+    @jwt_required()
+    def get_habit_history(habit_id):
+        """Get habit completion history for calendar/heatmap view"""
+        try:
+            current_user_id = int(get_jwt_identity())
+            
+            # Verify habit belongs to user
+            habit = Habit.query.filter_by(id=habit_id, user_id=current_user_id).first()
+            if not habit:
+                return jsonify({'error': 'Habit not found or access denied'}), 404
+            
+            # Get optional date range parameters
+            start_date_str = request.args.get('start_date')
+            end_date_str = request.args.get('end_date')
+            
+            # Default to last 30 days if no range provided
+            if not start_date_str or not end_date_str:
+                end_date = date.today()
+                start_date = end_date - timedelta(days=30)
+            else:
+                try:
+                    start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
+                    end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date()
+                except ValueError:
+                    return jsonify({'error': 'Invalid date format. Use YYYY-MM-DD'}), 400
+            
+            # Get all completions for the habit in the date range
+            completions = HabitCompletion.query.filter(
+                HabitCompletion.habit_id == habit_id,
+                HabitCompletion.completion_date >= start_date,
+                HabitCompletion.completion_date <= end_date
+            ).all()
+            
+            # Create a set of completed dates for quick lookup
+            completed_dates = {completion.completion_date for completion in completions}
+            
+            # Generate daily status for each date in range
+            history = []
+            current_date = start_date
+            
+            while current_date <= end_date:
+                # Determine status for this date
+                if current_date in completed_dates:
+                    status = 'completed'
+                elif current_date < date.today():
+                    # Check if habit was due on this date based on target_days
+                    is_due = True  # Simplified - could add more logic for weekdays/custom
+                    status = 'missed' if is_due else 'not_logged'
+                else:
+                    status = 'not_logged'
+                
+                history.append({
+                    'date': current_date.isoformat(),
+                    'status': status
+                })
+                
+                current_date += timedelta(days=1)
+            
+            return jsonify({
+                'habit_id': habit_id,
+                'habit_name': habit.name,
+                'start_date': start_date.isoformat(),
+                'end_date': end_date.isoformat(),
+                'total_days': len(history),
+                'completed_days': len([h for h in history if h['status'] == 'completed']),
+                'history': history
+            }), 200
+            
+        except Exception as e:
+            return jsonify({'error': f'Failed to get habit history: {str(e)}'}), 500
 
     @app.route('/api/users', methods=['POST'])
     def create_user():

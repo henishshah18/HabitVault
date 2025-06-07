@@ -36,6 +36,9 @@ def create_app():
          allow_headers=['Content-Type', 'Authorization', 'Accept'],
          supports_credentials=True)
     
+    # Initialize JWT
+    jwt = JWTManager(app)
+    
     # Initialize database and create tables
     with app.app_context():
         db.create_all()
@@ -78,7 +81,7 @@ def create_app():
             },
             'api': {
                 'version': '1.0',
-                'endpoints': ['/api/hello', '/api/status', '/api/users', '/api/register']
+                'endpoints': ['/api/hello', '/api/status', '/api/users', '/api/register', '/api/login']
             }
         })
     
@@ -138,6 +141,48 @@ def create_app():
         except Exception as e:
             db.session.rollback()
             return jsonify({'error': f'Registration failed: {str(e)}'}), 500
+
+    @app.route('/api/login', methods=['POST'])
+    def login():
+        """Login a user and return JWT token"""
+        try:
+            data = request.get_json()
+            
+            # Validate required fields
+            if not data:
+                return jsonify({'error': 'Request body is required'}), 400
+            
+            if 'email' not in data or not data['email']:
+                return jsonify({'error': 'Email is required'}), 400
+                
+            if 'password' not in data or not data['password']:
+                return jsonify({'error': 'Password is required'}), 400
+            
+            email = data['email'].strip().lower()
+            password = data['password']
+            
+            # Find user by email
+            user = User.query.filter_by(email=email).first()
+            
+            if not user:
+                return jsonify({'error': 'Invalid credentials'}), 401
+            
+            # Verify password
+            if not check_password_hash(user.password_hash, password):
+                return jsonify({'error': 'Invalid credentials'}), 401
+            
+            # Create JWT token
+            access_token = create_access_token(identity=user.id)
+            
+            return jsonify({
+                'message': 'Login successful',
+                'access_token': access_token,
+                'user_id': user.id,
+                'user': user.to_dict()
+            }), 200
+            
+        except Exception as e:
+            return jsonify({'error': f'Login failed: {str(e)}'}), 500
 
     @app.route('/api/users', methods=['POST'])
     def create_user():

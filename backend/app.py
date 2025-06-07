@@ -189,7 +189,7 @@ def create_app():
     def protected():
         """Protected endpoint that requires JWT token"""
         try:
-            current_user_id = get_jwt_identity()
+            current_user_id = int(get_jwt_identity())
             user = User.query.get(current_user_id)
             
             if not user:

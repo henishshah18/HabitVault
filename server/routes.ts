@@ -37,7 +37,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         method: req.method,
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/json'
+          'Accept': 'application/json',
+          ...(req.headers.authorization && { 'Authorization': req.headers.authorization })
         }
       };
 

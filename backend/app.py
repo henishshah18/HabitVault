@@ -59,12 +59,10 @@ def initialize_database():
         db.session.rollback()
 
 def calculate_current_streak(habit):
-    """Calculate current streak by checking consecutive completions backward from today"""
+    """Calculate current streak by checking only immediate previous assigned day"""
     from datetime import date, timedelta, datetime
     
-    # Start from today and go backward
     current_date = date.today()
-    streak = 0
     
     # Safety check - don't go back before habit start date
     habit_start = habit.start_date
@@ -74,48 +72,43 @@ def calculate_current_streak(habit):
         except ValueError:
             return 0
     
-    # First, check if habit is completed today (if due today)
+    # Check if habit is completed today (if due today)
     if is_habit_due_on_date(habit, current_date):
         today_completion = HabitCompletion.query.filter_by(
             habit_id=habit.id,
             completion_date=current_date
         ).first()
         
-        if today_completion:
-            streak = 1
-        else:
+        if not today_completion:
             # Not completed today but due today - streak is 0
             return 0
-            
-        # Move to previous day
+        
+        # Completed today - now check immediate previous assigned day
         current_date -= timedelta(days=1)
-    
-    # Now check consecutive completions going backward
-    while current_date >= habit_start:
-        # Skip days when habit wasn't due
-        if not is_habit_due_on_date(habit, current_date):
-            current_date -= timedelta(days=1)
-            continue
         
-        # This is a day when habit was due - check if completed
-        completion = HabitCompletion.query.filter_by(
-            habit_id=habit.id,
-            completion_date=current_date
-        ).first()
-        
-        if completion:
-            # Completed on this day - increment streak
-            streak += 1
-            current_date -= timedelta(days=1)
-        else:
-            # Missed this day - streak stops here, don't reset to 0
-            break
+        # Find the immediate previous day when habit was due
+        while current_date >= habit_start:
+            if is_habit_due_on_date(habit, current_date):
+                # Found the immediate previous assigned day
+                previous_completion = HabitCompletion.query.filter_by(
+                    habit_id=habit.id,
+                    completion_date=current_date
+                ).first()
+                
+                if previous_completion:
+                    # Previous day was completed - streak = current_streak + 1
+                    return habit.current_streak + 1
+                else:
+                    # Previous day was missed - streak = 0 + 1 = 1
+                    return 1
             
-        # Safety check to avoid infinite loops
-        if streak > 365:
-            break
-    
-    return streak
+            current_date -= timedelta(days=1)
+        
+        # No previous assigned day found - this is first completion
+        return 1
+    else:
+        # Habit not due today - return current streak unchanged
+        return habit.current_streak
 
 def is_habit_due_on_date(habit, check_date):
     """Check if a habit is due on a specific date based on target_days and start_date"""

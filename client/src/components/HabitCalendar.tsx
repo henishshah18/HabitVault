@@ -405,7 +405,7 @@ export function HabitCalendar({ habits: externalHabits, onDataUpdate }: HabitCal
             <span>Habit History Calendar</span>
           </CardTitle>
           <div className="flex items-center space-x-2">
-            <Select value={viewMode} onValueChange={(value: ViewMode) => handleViewModeChange(value)}>
+            <Select value={viewMode} onValueChange={(value: ViewMode) => handleViewModeChange(value)} disabled={viewSwitching}>
               <SelectTrigger className="w-32">
                 <SelectValue />
               </SelectTrigger>
@@ -418,13 +418,13 @@ export function HabitCalendar({ habits: externalHabits, onDataUpdate }: HabitCal
         </div>
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <Button variant="outline" size="sm" onClick={navigatePrevious}>
+            <Button variant="outline" size="sm" onClick={navigatePrevious} disabled={viewSwitching}>
               <ChevronLeft className="w-4 h-4" />
             </Button>
-            <Button variant="outline" size="sm" onClick={navigateNext}>
+            <Button variant="outline" size="sm" onClick={navigateNext} disabled={viewSwitching}>
               <ChevronRight className="w-4 h-4" />
             </Button>
-            <Button variant="outline" size="sm" onClick={navigateToday}>
+            <Button variant="outline" size="sm" onClick={navigateToday} disabled={viewSwitching}>
               Today
             </Button>
           </div>

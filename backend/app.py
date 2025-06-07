@@ -436,16 +436,15 @@ def create_app():
                         break
                 
                 # If perfect day achieved and we have habits due today
+                today_str = today.isoformat()
                 if all_completed and len(habits_due_today) > 0:
-                    # Check if we already counted today as a perfect day
-                    existing_perfect_day = getattr(user, '_counted_perfect_days', set())
-                    today_str = today.isoformat()
-                    
-                    if today_str not in existing_perfect_day:
-                        user.perfect_days_count += 1
-                        if not hasattr(user, '_counted_perfect_days'):
-                            user._counted_perfect_days = set()
-                        user._counted_perfect_days.add(today_str)
+                    # Add today to perfect days if not already there
+                    if not user.has_perfect_day(today_str):
+                        user.add_perfect_day(today_str)
+                else:
+                    # Remove today from perfect days if it was there but no longer complete
+                    if user.has_perfect_day(today_str):
+                        user.remove_perfect_day(today_str)
             
             db.session.commit()
             
@@ -488,6 +487,14 @@ def create_app():
             
             # Reset current streak (simple approach - can be enhanced)
             habit.current_streak = max(0, habit.current_streak - 1)
+            
+            # Check if this affects perfect day status
+            user = User.query.get(current_user_id)
+            if user:
+                today_str = today.isoformat()
+                # Remove today from perfect days since a habit is now incomplete
+                if user.has_perfect_day(today_str):
+                    user.remove_perfect_day(today_str)
             
             db.session.commit()
             

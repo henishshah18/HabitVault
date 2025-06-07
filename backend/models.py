@@ -1,6 +1,7 @@
 from flask_sqlalchemy import SQLAlchemy
 from datetime import date, datetime
 import uuid
+import json
 
 db = SQLAlchemy()
 
@@ -11,6 +12,7 @@ class User(db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(255), nullable=False)
     perfect_days_count = db.Column(db.Integer, default=0)
+    perfect_days_dates = db.Column(db.Text, default='')  # Store JSON array of date strings
     
     # Relationship to habits
     habits = db.relationship('Habit', backref='user', lazy=True, cascade='all, delete-orphan')
@@ -19,7 +21,35 @@ class User(db.Model):
         self.email = email
         self.password_hash = password_hash
         self.perfect_days_count = 0
+        self.perfect_days_dates = ''
     
+    def get_perfect_days_set(self):
+        """Get the set of perfect days as a Python set"""
+        if not self.perfect_days_dates:
+            return set()
+        try:
+            return set(json.loads(self.perfect_days_dates))
+        except:
+            return set()
+    
+    def add_perfect_day(self, date_str):
+        """Add a date to the perfect days set"""
+        perfect_days = self.get_perfect_days_set()
+        perfect_days.add(date_str)
+        self.perfect_days_dates = json.dumps(list(perfect_days))
+        self.perfect_days_count = len(perfect_days)
+    
+    def remove_perfect_day(self, date_str):
+        """Remove a date from the perfect days set"""
+        perfect_days = self.get_perfect_days_set()
+        perfect_days.discard(date_str)
+        self.perfect_days_dates = json.dumps(list(perfect_days))
+        self.perfect_days_count = len(perfect_days)
+    
+    def has_perfect_day(self, date_str):
+        """Check if a specific date is in the perfect days set"""
+        return date_str in self.get_perfect_days_set()
+
     def get_next_milestone(self):
         """Get the next milestone and progress towards it"""
         milestones = [50, 100, 200, 365, 500, 1000]

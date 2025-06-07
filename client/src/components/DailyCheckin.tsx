@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { ProgressCircle } from './ProgressCircle';
-import { MilestoneProgress } from './MilestoneProgress';
+
 import { HabitForm } from './HabitForm';
 import { Flame, Trophy, CheckCircle2, Target, Plus } from 'lucide-react';
 
@@ -32,12 +32,6 @@ interface User {
   id: number;
   email: string;
   perfect_days_count: number;
-  milestone: {
-    next_milestone: number;
-    current_count: number;
-    progress_percentage: number;
-    days_remaining: number;
-  };
 }
 
 export function DailyCheckin({ onLogout, onNewHabit }: DailyCheckinProps) {
@@ -46,7 +40,7 @@ export function DailyCheckin({ onLogout, onNewHabit }: DailyCheckinProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [showHabitForm, setShowHabitForm] = useState(false);
-  const [tempPerfectDayAdjustment, setTempPerfectDayAdjustment] = useState(0);
+
   const { toast } = useToast();
 
   // Calculate progress for today's habits only
@@ -254,13 +248,7 @@ export function DailyCheckin({ onLogout, onNewHabit }: DailyCheckinProps) {
         </Alert>
       )}
 
-      {/* Milestone Progress */}
-      {user?.milestone && (
-        <MilestoneProgress 
-          milestone={user.milestone} 
-          tempAdjustment={tempPerfectDayAdjustment}
-        />
-      )}
+
 
       {/* Today's Targets */}
       {todaysHabits.length > 0 ? (

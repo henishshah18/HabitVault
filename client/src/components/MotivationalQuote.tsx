@@ -102,12 +102,10 @@ export function MotivationalQuote() {
   return (
     <Card className="border-none bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20">
       <CardContent className="p-6">
-        <div className="flex items-center justify-center space-x-3">
-          <Quote className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0" />
+        <div className="flex items-center justify-center">
           <p className="text-center text-lg font-medium italic text-blue-800 dark:text-blue-200">
-            {currentQuote}
+            "{currentQuote}"
           </p>
-          <Quote className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 transform rotate-180" />
         </div>
       </CardContent>
     </Card>

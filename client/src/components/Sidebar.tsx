@@ -49,7 +49,7 @@ export function Sidebar({ activeTab, onTabChange, onLogout }: SidebarProps) {
   ];
 
   return (
-    <div className={`h-full flex flex-col bg-card transition-all duration-200 ${isMinimized ? 'w-16' : 'w-64'}`}>
+    <div className={`h-full flex flex-col bg-card border-r transition-all duration-300 ${isMinimized ? 'w-16' : 'w-64'}`}>
       {/* Sidebar Header - matches main header height */}
       <div className={`h-16 border-b flex items-center ${isMinimized ? 'justify-center px-2' : 'justify-between px-4'}`}>
         {!isMinimized && (

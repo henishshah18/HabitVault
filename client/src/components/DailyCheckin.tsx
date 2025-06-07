@@ -178,6 +178,22 @@ export function DailyCheckin({ onLogout, onNewHabit }: DailyCheckinProps) {
       case 'custom':
         return 'Custom';
       default:
+        // Handle comma-separated custom days
+        if (targetDays.includes(',')) {
+          const dayMap: { [key: string]: string } = {
+            'monday': 'Mon',
+            'tuesday': 'Tue', 
+            'wednesday': 'Wed',
+            'thursday': 'Thu',
+            'friday': 'Fri',
+            'saturday': 'Sat',
+            'sunday': 'Sun'
+          };
+          const days = targetDays.split(',').map(day => 
+            dayMap[day.trim().toLowerCase()] || day.trim()
+          );
+          return days.join(', ');
+        }
         return targetDays;
     }
   };

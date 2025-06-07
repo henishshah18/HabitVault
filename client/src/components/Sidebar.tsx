@@ -93,11 +93,7 @@ export function Sidebar({ activeTab, onTabChange, onLogout }: SidebarProps) {
                     )}
                   </div>
                 )}
-                {isActive && !isMinimized && (
-                  <Badge variant="secondary" className="ml-auto">
-                    Active
-                  </Badge>
-                )}
+
               </Button>
             );
           })}

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { BarChart3, TrendingUp, Calendar, Target } from 'lucide-react';
-import { HabitHistoryView } from './HabitHistoryView';
+import { HabitCompletionHeatmap } from './HabitCompletionHeatmap';
 
 interface Habit {
   id: number;
@@ -19,7 +19,6 @@ interface Habit {
 
 export function AnalyticsDashboard() {
   const [habits, setHabits] = useState<Habit[]>([]);
-  const [selectedHabitId, setSelectedHabitId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -44,9 +43,6 @@ export function AnalyticsDashboard() {
       if (response.ok) {
         const data = await response.json();
         setHabits(data.habits || []);
-        if (data.habits && data.habits.length > 0) {
-          setSelectedHabitId(data.habits[0].id);
-        }
       }
     } catch (error) {
       console.error('Failed to fetch habits:', error);
@@ -138,24 +134,7 @@ export function AnalyticsDashboard() {
 
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold">Habit History</h2>
-          {habits.length > 0 && (
-            <Select
-              value={selectedHabitId?.toString()}
-              onValueChange={(value) => setSelectedHabitId(parseInt(value))}
-            >
-              <SelectTrigger className="w-64">
-                <SelectValue placeholder="Select a habit" />
-              </SelectTrigger>
-              <SelectContent>
-                {habits.map((habit) => (
-                  <SelectItem key={habit.id} value={habit.id.toString()}>
-                    {habit.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
+          <h2 className="text-2xl font-bold">Habit Completion Calendar</h2>
         </div>
 
         {loading ? (
@@ -176,9 +155,9 @@ export function AnalyticsDashboard() {
               </p>
             </CardContent>
           </Card>
-        ) : selectedHabitId ? (
-          <HabitHistoryView habitId={selectedHabitId} />
-        ) : null}
+        ) : (
+          <HabitCompletionHeatmap />
+        )}
       </div>
     </div>
   );

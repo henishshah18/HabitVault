@@ -15,9 +15,9 @@ interface MilestoneProgressProps {
 }
 
 export function MilestoneProgress({ milestone, tempAdjustment = 0 }: MilestoneProgressProps) {
-  // Calculate real-time adjusted values
-  const adjustedCount = milestone.current_count + tempAdjustment;
-  const adjustedProgress = (adjustedCount / milestone.next_milestone) * 100;
+  // Calculate real-time adjusted values with minimum of 0
+  const adjustedCount = Math.max(0, milestone.current_count + tempAdjustment);
+  const adjustedProgress = Math.min(100, (adjustedCount / milestone.next_milestone) * 100);
   return (
     <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 p-4 rounded-lg border border-amber-200 dark:border-amber-800">
       <div className="relative">

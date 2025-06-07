@@ -162,13 +162,13 @@ export function DailyCheckin({ onLogout, onNewHabit }: DailyCheckinProps) {
         
         // Update temporary perfect day adjustment for real-time UI updates
         if (!wasAllComplete && willBeAllComplete) {
-          // Just completed all habits - add 1 to display
+          // Just completed all habits - show +1 in UI
           setTempPerfectDayAdjustment(1);
         } else if (wasAllComplete && !willBeAllComplete) {
-          // Just broke perfect day - subtract 1 from display
+          // Just broke perfect day - show -1 in UI
           setTempPerfectDayAdjustment(-1);
         } else {
-          // No change in perfect day status
+          // No change in perfect day status - reset to 0
           setTempPerfectDayAdjustment(0);
         }
         

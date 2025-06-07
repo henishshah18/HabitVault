@@ -231,10 +231,10 @@ export function HabitCalendar({ habits: externalHabits, onDataUpdate }: HabitCal
       }
     }
 
-    const completionData = await fetchCompletionData(
-      startDate.toISOString().split('T')[0],
-      endDate.toISOString().split('T')[0]
-    );
+    const startDateStr = `${startDate.getFullYear()}-${String(startDate.getMonth() + 1).padStart(2, '0')}-${String(startDate.getDate()).padStart(2, '0')}`;
+    const endDateStr = `${endDate.getFullYear()}-${String(endDate.getMonth() + 1).padStart(2, '0')}-${String(endDate.getDate()).padStart(2, '0')}`;
+    
+    const completionData = await fetchCompletionData(startDateStr, endDateStr);
 
     const days: CalendarDay[] = [];
     

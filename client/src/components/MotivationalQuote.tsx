@@ -63,6 +63,9 @@ export function MotivationalQuote() {
     const handlePreferenceChange = (event: CustomEvent) => {
       if (event.detail.key === 'motivationalQuotes') {
         setShowQuotes(event.detail.value !== false);
+      } else if (event.detail.settings) {
+        // Handle batch settings update
+        setShowQuotes(event.detail.settings.motivationalQuotes !== false);
       }
     };
 

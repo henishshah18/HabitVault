@@ -69,28 +69,52 @@ export function MotivationalQuote() {
       }
     };
 
+    const updateQuote = () => {
+      // Get a consistent quote for the day based on local date (not UTC)
+      const today = new Date();
+      const year = today.getFullYear();
+      const month = String(today.getMonth() + 1).padStart(2, '0');
+      const day = String(today.getDate()).padStart(2, '0');
+      const dateString = `${year}-${month}-${day}`; // Local YYYY-MM-DD format
+      
+      // Create a simple hash from the date string for consistent daily rotation
+      let hash = 0;
+      for (let i = 0; i < dateString.length; i++) {
+        const char = dateString.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash; // Convert to 32bit integer
+      }
+      
+      const quoteIndex = Math.abs(hash) % motivationalQuotes.length;
+      setCurrentQuote(motivationalQuotes[quoteIndex]);
+    };
+
     // Initial load
     loadPreferences();
+    updateQuote();
 
-    // Get a consistent quote for the day based on the date
-    const today = new Date();
-    const dateString = today.toISOString().split('T')[0]; // YYYY-MM-DD format
+    // Set up timer to update quote at midnight
+    const now = new Date();
+    const tomorrow = new Date(now);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(0, 0, 0, 0); // Set to midnight
     
-    // Create a simple hash from the date string for consistent daily rotation
-    let hash = 0;
-    for (let i = 0; i < dateString.length; i++) {
-      const char = dateString.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
-      hash = hash & hash; // Convert to 32bit integer
-    }
+    const msUntilMidnight = tomorrow.getTime() - now.getTime();
     
-    const quoteIndex = Math.abs(hash) % motivationalQuotes.length;
-    setCurrentQuote(motivationalQuotes[quoteIndex]);
+    // Set timeout for first midnight, then interval for daily updates
+    const midnightTimeout = setTimeout(() => {
+      updateQuote();
+      // Set interval for subsequent days
+      const dailyInterval = setInterval(updateQuote, 24 * 60 * 60 * 1000);
+      
+      return () => clearInterval(dailyInterval);
+    }, msUntilMidnight);
 
     // Listen for preference changes
     window.addEventListener('userPreferenceChanged', handlePreferenceChange as EventListener);
 
     return () => {
+      clearTimeout(midnightTimeout);
       window.removeEventListener('userPreferenceChanged', handlePreferenceChange as EventListener);
     };
   }, []);

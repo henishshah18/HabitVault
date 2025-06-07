@@ -129,8 +129,20 @@ export function DailyCheckin({ onLogout, onNewHabit }: DailyCheckinProps) {
   const handleToggleCompletion = async (habitId: number, isCompleted: boolean) => {
     const token = localStorage.getItem('authToken');
     
-    // Check current perfect day status before change
-    const wasAllComplete = todaysHabits.length > 0 && completedToday.length === todaysHabits.length;
+    // Optimistic update - update UI immediately
+    const optimisticHabits = habits.map(habit => 
+      habit.id === habitId 
+        ? { ...habit, is_completed_today: !isCompleted, completion_timestamp: !isCompleted ? new Date().toISOString() : habit.completion_timestamp }
+        : habit
+    );
+    setHabits(optimisticHabits);
+    
+    // Dispatch events immediately for responsive UI
+    const event = !isCompleted ? 'habitCompleted' : 'habitUncompleted';
+    window.dispatchEvent(new CustomEvent(event, { detail: { habitId } }));
+    window.dispatchEvent(new CustomEvent('habitCompletionChanged', {
+      detail: { habitId, isCompleted: !isCompleted, habits: optimisticHabits }
+    }));
     
     try {
       const endpoint = isCompleted ? 'uncomplete' : 'complete';
@@ -145,40 +157,29 @@ export function DailyCheckin({ onLogout, onNewHabit }: DailyCheckinProps) {
       const data = await response.json();
 
       if (response.ok) {
-        // Update habits with new completion status
-        const updatedHabits = habits.map(habit => 
+        // Update with server response to ensure consistency
+        const serverHabits = habits.map(habit => 
           habit.id === habitId ? data.habit : habit
         );
-        setHabits(updatedHabits);
+        setHabits(serverHabits);
         
-        // Calculate new perfect day status
-        const newTodaysHabits = updatedHabits.filter(habit => habit.is_due_today);
-        const newCompletedToday = newTodaysHabits.filter(habit => habit.is_completed_today);
-        const willBeAllComplete = newTodaysHabits.length > 0 && newCompletedToday.length === newTodaysHabits.length;
-        
-        // Dispatch events for calendar updates
-        if (!isCompleted) {
-          window.dispatchEvent(new CustomEvent('habitCompleted', { detail: { habitId } }));
-        } else {
-          window.dispatchEvent(new CustomEvent('habitUncompleted', { detail: { habitId } }));
-        }
-        
-        // Dispatch event to update analytics dashboard with real-time data
+        // Final event dispatch with server data
         window.dispatchEvent(new CustomEvent('habitCompletionChanged', {
-          detail: { habitId, isCompleted: !isCompleted, habits: updatedHabits }
-        }));
-        
-        // Also dispatch habit data change event for any components listening
-        window.dispatchEvent(new CustomEvent('habitDataChanged', {
-          detail: { habits: updatedHabits }
+          detail: { habitId, isCompleted: !isCompleted, habits: serverHabits }
         }));
         
         toast({
           title: 'Success',
           description: `Habit ${isCompleted ? 'uncompleted' : 'completed'} successfully`,
-          duration: 2000,
+          duration: 1500,
         });
       } else {
+        // Revert optimistic update on error
+        setHabits(habits);
+        window.dispatchEvent(new CustomEvent('habitCompletionChanged', {
+          detail: { habitId, isCompleted, habits }
+        }));
+        
         toast({
           title: 'Error',
           description: data.error || 'Failed to update habit',
@@ -186,6 +187,12 @@ export function DailyCheckin({ onLogout, onNewHabit }: DailyCheckinProps) {
         });
       }
     } catch (err) {
+      // Revert optimistic update on network error
+      setHabits(habits);
+      window.dispatchEvent(new CustomEvent('habitCompletionChanged', {
+        detail: { habitId, isCompleted, habits }
+      }));
+      
       toast({
         title: 'Error',
         description: 'Network error. Please try again.',

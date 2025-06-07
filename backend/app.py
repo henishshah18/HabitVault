@@ -609,9 +609,15 @@ def create_app():
                 for h in habits_due_today
             )
             
+            # Prepare habit data with correct completion status
+            habit_data = habit.to_dict()
+            habit_data['is_completed_today'] = True
+            habit_data['completion_timestamp'] = completion.completed_at.isoformat()
+            habit_data['is_due_today'] = habit.is_due_today(today)
+            
             return jsonify({
                 'message': 'Habit completed successfully',
-                'habit': habit.to_dict(),
+                'habit': habit_data,
                 'completion': completion.to_dict(),
                 'perfect_day_achieved': all_completed and len(habits_due_today) > 0
             }), 200
@@ -665,9 +671,15 @@ def create_app():
             
             db.session.commit()
             
+            # Prepare habit data with correct completion status
+            habit_data = habit.to_dict()
+            habit_data['is_completed_today'] = False
+            habit_data['completion_timestamp'] = None
+            habit_data['is_due_today'] = habit.is_due_today(today)
+            
             return jsonify({
                 'message': 'Habit uncompleted successfully',
-                'habit': habit.to_dict()
+                'habit': habit_data
             }), 200
             
         except Exception as e:

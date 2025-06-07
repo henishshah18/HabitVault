@@ -8,7 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { ProgressCircle } from './ProgressCircle';
 
 import { HabitForm } from './HabitForm';
-import { Flame, Trophy, CheckCircle2, Target, Plus } from 'lucide-react';
+import { Flame, Trophy, CheckCircle2, Target, Plus, Clock } from 'lucide-react';
 
 interface Habit {
   id: number;
@@ -297,12 +297,20 @@ export function DailyCheckin({ onLogout, onNewHabit }: DailyCheckinProps) {
                       <div className="space-y-2">
                         <div className="flex items-center space-x-2">
                           <Flame className="w-4 h-4 text-orange-500" />
-                          <span className="text-sm font-medium">{habit.current_streak} days</span>
+                          <span className="text-sm font-medium">Current: {habit.current_streak} days</span>
                         </div>
                         <div className="flex items-center space-x-2">
                           <Trophy className="w-4 h-4 text-yellow-500" />
                           <span className="text-sm text-muted-foreground">Best: {habit.longest_streak}</span>
                         </div>
+                        {isCompleted && (
+                          <div className="flex items-center space-x-2 pt-1 border-t border-gray-200 dark:border-gray-700">
+                            <Clock className="w-3 h-3 text-green-600" />
+                            <span className="text-xs text-green-600">
+                              Completed at {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                          </div>
+                        )}
                       </div>
                     </CardContent>
                   </Card>

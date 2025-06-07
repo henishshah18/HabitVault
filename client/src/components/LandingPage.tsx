@@ -89,7 +89,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
           </div>
 
           {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
+          <div className="flex justify-center mb-12">
             <Button 
               size="lg" 
               onClick={onGetStarted}
@@ -97,14 +97,6 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
             >
               Start Building Habits
               <ArrowRight className="w-5 h-5 ml-2" />
-            </Button>
-            <Button 
-              size="lg" 
-              variant="outline"
-              className="px-8 py-4 text-lg border-2"
-            >
-              <Eye className="w-5 h-5 mr-2" />
-              See Demo
             </Button>
           </div>
 

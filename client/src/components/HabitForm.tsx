@@ -122,8 +122,9 @@ export function HabitForm({ habit, onSuccess, onCancel }: HabitFormProps) {
 
 
   return (
-    <Card className="w-full max-w-lg mx-auto">
-      <CardHeader>
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+      <Card className="w-full max-w-lg mx-auto max-h-[90vh] overflow-y-auto">
+        <CardHeader>
         <div className="flex items-center space-x-3">
           <Button
             variant="ghost"
@@ -245,6 +246,7 @@ export function HabitForm({ habit, onSuccess, onCancel }: HabitFormProps) {
           </Button>
         </CardFooter>
       </form>
-    </Card>
+      </Card>
+    </div>
   );
 }

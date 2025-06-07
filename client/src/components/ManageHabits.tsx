@@ -251,7 +251,7 @@ export function ManageHabits({ onLogout }: ManageHabitsProps) {
                     <div className="space-y-2">
                       <div className="flex items-center space-x-2">
                         <Flame className="w-4 h-4 text-orange-500" />
-                        <span className="text-sm font-medium">{habit.current_streak} days</span>
+                        <span className="text-sm font-medium">Current: {habit.current_streak} days</span>
                       </div>
                       <div className="flex items-center space-x-2">
                         <Trophy className="w-4 h-4 text-yellow-500" />

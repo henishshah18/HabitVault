@@ -45,13 +45,23 @@ export function AnalyticsDashboard() {
   }, []);
 
   useEffect(() => {
-    const handleHabitCompletionChange = () => {
-      fetchHabits();
+    const handleHabitCompletionChange = (event: CustomEvent) => {
+      const { habits: updatedHabits } = event.detail;
+      if (updatedHabits) {
+        setHabits(updatedHabits);
+        // Recalculate perfect day rate with updated habits
+        const token = localStorage.getItem('authToken');
+        if (token) {
+          calculatePerfectDayRate(updatedHabits, token);
+        }
+      } else {
+        fetchHabits();
+      }
     };
 
-    window.addEventListener('habitCompletionChanged', handleHabitCompletionChange);
+    window.addEventListener('habitCompletionChanged', handleHabitCompletionChange as EventListener);
     return () => {
-      window.removeEventListener('habitCompletionChanged', handleHabitCompletionChange);
+      window.removeEventListener('habitCompletionChanged', handleHabitCompletionChange as EventListener);
     };
   }, []);
 

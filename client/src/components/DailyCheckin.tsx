@@ -134,10 +134,19 @@ export function DailyCheckin({ onLogout, onNewHabit }: DailyCheckinProps) {
     // Add loading state for this habit
     setLoadingHabits(prev => new Set(prev).add(habitId));
     
-    // Optimistic update - update UI immediately
+    // Optimistic update - update UI immediately with conservative streak estimate
     const optimisticHabits = habits.map(habit => 
       habit.id === habitId 
-        ? { ...habit, is_completed_today: !isCompleted, completion_timestamp: !isCompleted ? new Date().toISOString() : habit.completion_timestamp }
+        ? { 
+            ...habit, 
+            is_completed_today: !isCompleted, 
+            completion_timestamp: !isCompleted ? new Date().toISOString() : habit.completion_timestamp,
+            // Only update streaks optimistically for completion, not removal
+            current_streak: !isCompleted ? habit.current_streak + 1 : habit.current_streak,
+            longest_streak: !isCompleted && (habit.current_streak + 1) > habit.longest_streak 
+              ? habit.current_streak + 1 
+              : habit.longest_streak
+          }
         : habit
     );
     setHabits(optimisticHabits);
@@ -173,16 +182,23 @@ export function DailyCheckin({ onLogout, onNewHabit }: DailyCheckinProps) {
         // Small delay to show loading effect
         setTimeout(() => {
           // Update with server response but preserve is_due_today status
-          setHabits(currentHabits => 
-            currentHabits.map(habit => 
+          setHabits(currentHabits => {
+            const updatedHabits = currentHabits.map(habit => 
               habit.id === habitId 
                 ? { 
                     ...data.habit, 
                     is_due_today: habit.is_due_today // Preserve due status to prevent disappearing
                   }
                 : habit
-            )
-          );
+            );
+            
+            // Final event dispatch with server data and updated habits
+            window.dispatchEvent(new CustomEvent('habitCompletionChanged', {
+              detail: { habitId, isCompleted: !isCompleted, habits: updatedHabits }
+            }));
+            
+            return updatedHabits;
+          });
           
           // Remove loading state
           setLoadingHabits(prev => {
@@ -190,11 +206,6 @@ export function DailyCheckin({ onLogout, onNewHabit }: DailyCheckinProps) {
             newSet.delete(habitId);
             return newSet;
           });
-          
-          // Final event dispatch with server data
-          window.dispatchEvent(new CustomEvent('habitCompletionChanged', {
-            detail: { habitId, isCompleted: !isCompleted, habits: optimisticHabits }
-          }));
         }, 800);
         
 

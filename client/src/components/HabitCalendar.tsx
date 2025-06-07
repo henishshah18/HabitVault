@@ -97,8 +97,11 @@ export function HabitCalendar({ habits: externalHabits, onDataUpdate }: HabitCal
 
   // Listen for habit completion updates
   useEffect(() => {
-    const handleHabitUpdate = () => {
-      if (!externalHabits) {
+    const handleHabitUpdate = (event: CustomEvent) => {
+      const { habits: updatedHabits } = event.detail;
+      if (updatedHabits && !externalHabits) {
+        setHabits(updatedHabits);
+      } else if (!externalHabits) {
         fetchHabits();
       }
       if (onDataUpdate) {
@@ -106,12 +109,10 @@ export function HabitCalendar({ habits: externalHabits, onDataUpdate }: HabitCal
       }
     };
 
-    window.addEventListener('habitCompleted', handleHabitUpdate);
-    window.addEventListener('habitUncompleted', handleHabitUpdate);
+    window.addEventListener('habitCompletionChanged', handleHabitUpdate as EventListener);
     
     return () => {
-      window.removeEventListener('habitCompleted', handleHabitUpdate);
-      window.removeEventListener('habitUncompleted', handleHabitUpdate);
+      window.removeEventListener('habitCompletionChanged', handleHabitUpdate as EventListener);
     };
   }, [externalHabits, onDataUpdate]);
 

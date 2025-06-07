@@ -135,6 +135,20 @@ export function HabitList({ onLogout }: HabitListProps) {
   useEffect(() => {
     fetchUserData();
     fetchHabits();
+
+    // Listen for habit completion changes from other components
+    const handleHabitCompletionChanged = (event: CustomEvent) => {
+      const { habits: updatedHabits } = event.detail;
+      if (updatedHabits) {
+        setHabits(updatedHabits);
+      }
+    };
+
+    window.addEventListener('habitCompletionChanged', handleHabitCompletionChanged as EventListener);
+
+    return () => {
+      window.removeEventListener('habitCompletionChanged', handleHabitCompletionChanged as EventListener);
+    };
   }, [onLogout]);
 
   const handleToggleCompletion = async (habitId: number, isCompleted: boolean) => {

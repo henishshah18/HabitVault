@@ -181,6 +181,11 @@ export function HabitCalendar({ habits: externalHabits, onDataUpdate }: HabitCal
               
               // For today, use real-time completion status
               if (dateStr === todayStr) {
+                console.log(`Checking habit ${habit.id} (${habit.name}) for today:`, {
+                  isDue: true,
+                  isCompleted: habit.is_completed_today,
+                  targetDays: habit.target_days
+                });
                 if (habit.is_completed_today) {
                   completionMap[dateStr].completed++;
                 }

@@ -24,6 +24,7 @@ export function AnalyticsDashboard() {
   const [loading, setLoading] = useState(true);
   const [timeRange, setTimeRange] = useState<'week' | 'month'>('month');
   const [userId, setUserId] = useState<number | null>(null);
+  const [perfectDayRate, setPerfectDayRate] = useState<number>(0);
 
   useEffect(() => {
     // Initialize user preferences
@@ -74,11 +75,108 @@ export function AnalyticsDashboard() {
       if (response.ok) {
         const data = await response.json();
         setHabits(data.habits || []);
+        
+        // Calculate perfect day completion rate
+        await calculatePerfectDayRate(data.habits || [], token);
       }
     } catch (error) {
       console.error('Failed to fetch habits:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const calculatePerfectDayRate = async (habitsData: Habit[], token: string) => {
+    if (habitsData.length === 0) {
+      setPerfectDayRate(0);
+      return;
+    }
+
+    try {
+      // Get historical data for the past 30 days
+      const endDate = new Date();
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - 30);
+
+      // Get completion history for all habits
+      const historyPromises = habitsData.map(async (habit) => {
+        const response = await fetch(
+          `/api/habits/${habit.id}/history?start_date=${startDate.toISOString().split('T')[0]}&end_date=${endDate.toISOString().split('T')[0]}`,
+          {
+            headers: { 'Authorization': `Bearer ${token}` },
+          }
+        );
+        
+        if (response.ok) {
+          const historyData = await response.json();
+          return { habit, history: historyData.history };
+        }
+        return null;
+      });
+
+      const allHistories = (await Promise.all(historyPromises)).filter(h => h !== null);
+      
+      if (allHistories.length === 0) {
+        setPerfectDayRate(0);
+        return;
+      }
+
+      // Calculate perfect days
+      const dateMap = new Map<string, { completed: number; total: number }>();
+      
+      // Initialize all dates in range
+      for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+        const dateStr = d.toISOString().split('T')[0];
+        dateMap.set(dateStr, { completed: 0, total: 0 });
+      }
+
+      // Process each habit's history
+      allHistories.forEach(({ habit, history }) => {
+        history.forEach((day: any) => {
+          const dayData = dateMap.get(day.date);
+          if (dayData) {
+            // Check if habit was due on this date
+            const date = new Date(day.date);
+            const habitStartDate = new Date(habit.start_date);
+            
+            if (date >= habitStartDate && isDueOnDate(habit.target_days, date)) {
+              dayData.total++;
+              if (day.status === 'completed') {
+                dayData.completed++;
+              }
+            }
+          }
+        });
+      });
+
+      // Calculate perfect day rate
+      const daysWithHabits = Array.from(dateMap.values()).filter(day => day.total > 0);
+      const perfectDays = daysWithHabits.filter(day => day.completed === day.total).length;
+      
+      const rate = daysWithHabits.length > 0 ? Math.round((perfectDays / daysWithHabits.length) * 100) : 0;
+      setPerfectDayRate(rate);
+      
+    } catch (error) {
+      console.error('Failed to calculate perfect day rate:', error);
+      setPerfectDayRate(0);
+    }
+  };
+
+  const isDueOnDate = (targetDays: string, date: Date) => {
+    const dayOfWeek = date.getDay(); // 0 = Sunday, 1 = Monday, etc.
+    
+    switch (targetDays) {
+      case 'every_day':
+        return true;
+      case 'weekdays':
+        return dayOfWeek >= 1 && dayOfWeek <= 5;
+      default:
+        if (targetDays.includes(',')) {
+          const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+          const requiredDays = targetDays.split(',').map(d => d.trim().toLowerCase());
+          return requiredDays.includes(dayNames[dayOfWeek]);
+        }
+        return true;
     }
   };
 
@@ -102,10 +200,7 @@ export function AnalyticsDashboard() {
     return 'No habits';
   };
 
-  const dueTodayHabits = habits.filter(h => h.is_due_today);
-  const completionRate = dueTodayHabits.length > 0
-    ? Math.round((dueTodayHabits.filter(h => h.is_completed_today).length / dueTodayHabits.length) * 100)
-    : 0;
+  // Use the calculated perfect day rate instead of today's completion rate
 
   return (
     <div className="space-y-6">
@@ -161,14 +256,14 @@ export function AnalyticsDashboard() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Today's Rate
+              Completion Rate
             </CardTitle>
             <BarChart3 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{completionRate}%</div>
+            <div className="text-2xl font-bold">{perfectDayRate}%</div>
             <p className="text-xs text-muted-foreground">
-              completion rate
+              perfect days (last 30 days)
             </p>
           </CardContent>
         </Card>

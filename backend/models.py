@@ -113,8 +113,13 @@ class Habit(db.Model):
         self.longest_streak = 0
     
     def is_due_today(self):
-        """Check if habit is due today based on target_days"""
+        """Check if habit is due today based on target_days and start_date"""
         today = date.today()
+        
+        # First check if today is on or after the start date
+        if today < self.start_date:
+            return False
+        
         weekday = today.weekday()  # 0=Monday, 6=Sunday
         
         if self.target_days == 'every_day':

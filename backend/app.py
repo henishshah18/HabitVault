@@ -29,7 +29,9 @@ def create_app():
     
     # Initialize extensions
     db.init_app(app)
-    CORS(app, origins=app.config['CORS_ORIGINS'])
+    CORS(app, origins=['http://localhost:5000', 'http://localhost:3000'], 
+         methods=['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+         allow_headers=['Content-Type', 'Authorization', 'Accept'])
     
     # Initialize database and create tables
     with app.app_context():
@@ -40,12 +42,13 @@ def create_app():
     @app.route('/api/hello', methods=['GET'])
     def hello():
         """Return a hello message from Flask backend"""
+        from datetime import datetime
         return jsonify({
             'message': 'Hello from Flask!',
             'status': 'success',
             'backend': 'Flask',
             'database': 'PostgreSQL + SQLAlchemy',
-            'timestamp': db.func.current_timestamp()
+            'timestamp': datetime.now().isoformat()
         })
     
     @app.route('/api/status', methods=['GET'])

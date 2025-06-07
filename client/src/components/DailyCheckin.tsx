@@ -159,6 +159,11 @@ export function DailyCheckin({ onLogout, onNewHabit }: DailyCheckinProps) {
           detail: { habitId, isCompleted: !isCompleted, habits: updatedHabits }
         }));
         
+        // Also dispatch habit data change event for any components listening
+        window.dispatchEvent(new CustomEvent('habitDataChanged', {
+          detail: { habits: updatedHabits }
+        }));
+        
         toast({
           title: 'Success',
           description: `Habit ${isCompleted ? 'uncompleted' : 'completed'} successfully`,

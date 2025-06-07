@@ -44,13 +44,20 @@ export function HabitCompletionHeatmap({ habitId }: HabitCompletionHeatmapProps)
       fetchCompletionData();
     };
 
+    const handleHabitDataChange = () => {
+      fetchCompletionData();
+    };
+
     window.addEventListener('habitCompletionChanged', handleHabitCompletionChange);
+    window.addEventListener('habitDataChanged', handleHabitDataChange);
     return () => {
       window.removeEventListener('habitCompletionChanged', handleHabitCompletionChange);
+      window.removeEventListener('habitDataChanged', handleHabitDataChange);
     };
   }, []);
 
   const fetchCompletionData = async () => {
+    setLoading(true);
     try {
       const token = localStorage.getItem('authToken');
       if (!token) {
@@ -60,9 +67,14 @@ export function HabitCompletionHeatmap({ habitId }: HabitCompletionHeatmapProps)
 
       const { startDate, endDate } = getDateRange(viewMode, currentDate);
       
-      // Get all habits
-      const habitsResponse = await fetch('/api/habits', {
-        headers: { 'Authorization': `Bearer ${token}` }
+      // Get all habits with fresh data (no cache)
+      const habitsResponse = await fetch('/api/habits?' + new URLSearchParams({
+        _t: Date.now().toString()
+      }), {
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Cache-Control': 'no-cache'
+        }
       });
 
       if (!habitsResponse.ok) {
@@ -90,46 +102,55 @@ export function HabitCompletionHeatmap({ habitId }: HabitCompletionHeatmapProps)
         });
       }
 
-      // Process each habit and build completion data
-      const habitStart = new Date(start);
+      // Get completion history for all habits in bulk
+      const historyPromises = habits.map(async (habit: any) => {
+        try {
+          const historyResponse = await fetch(`/api/habits/${habit.id}/history?start_date=${startDate}&end_date=${endDate}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+
+          if (historyResponse.ok) {
+            const historyData = await historyResponse.json();
+            return {
+              habitId: habit.id,
+              habit: habit,
+              history: historyData.history || []
+            };
+          }
+        } catch (error) {
+          console.error(`Failed to fetch history for habit ${habit.id}:`, error);
+        }
+        return { habitId: habit.id, habit: habit, history: [] };
+      });
+
+      const allHistories = await Promise.all(historyPromises);
       const today = new Date().toISOString().split('T')[0];
       
+      // Process each date
       for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
         const dateStr = d.toISOString().split('T')[0];
         const dayData = completionMap.get(dateStr);
         
         if (dayData) {
           // Count habits due on this day
-          for (const habit of habits) {
+          for (const historyEntry of allHistories) {
+            const habit = historyEntry.habit;
             const habitStartDate = new Date(habit.start_date);
             
             // Check if habit is due on this day
             if (d >= habitStartDate && isDueOnDate(habit.target_days, d)) {
               dayData.total_habits++;
               
-              // For today, use the real-time completion status
+              // For today, use real-time completion status from habit object
               if (dateStr === today) {
                 if (habit.is_completed_today) {
                   dayData.completed_habits++;
                 }
               } else {
-                // For other days, try to fetch from history
-                try {
-                  const historyResponse = await fetch(`/api/habits/${habit.id}/history?start_date=${dateStr}&end_date=${dateStr}`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                  });
-
-                  if (historyResponse.ok) {
-                    const historyData = await historyResponse.json();
-                    const completionHistory = historyData.history || [];
-                    
-                    const completionForDay = completionHistory.find((h: any) => h.date === dateStr);
-                    if (completionForDay && completionForDay.status === 'completed') {
-                      dayData.completed_habits++;
-                    }
-                  }
-                } catch (error) {
-                  console.error(`Failed to fetch history for habit ${habit.id} on ${dateStr}:`, error);
+                // For other days, check history
+                const completionForDay = historyEntry.history.find((h: any) => h.date === dateStr);
+                if (completionForDay && completionForDay.status === 'completed') {
+                  dayData.completed_habits++;
                 }
               }
             }

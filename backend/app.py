@@ -81,7 +81,7 @@ def create_app():
             },
             'api': {
                 'version': '1.0',
-                'endpoints': ['/api/hello', '/api/status', '/api/users', '/api/register', '/api/login']
+                'endpoints': ['/api/hello', '/api/status', '/api/users', '/api/register', '/api/login', '/api/protected']
             }
         })
     
@@ -172,7 +172,7 @@ def create_app():
                 return jsonify({'error': 'Invalid credentials'}), 401
             
             # Create JWT token
-            access_token = create_access_token(identity=user.id)
+            access_token = create_access_token(identity=str(user.id))
             
             return jsonify({
                 'message': 'Login successful',
@@ -183,6 +183,27 @@ def create_app():
             
         except Exception as e:
             return jsonify({'error': f'Login failed: {str(e)}'}), 500
+
+    @app.route('/api/protected', methods=['GET'])
+    @jwt_required()
+    def protected():
+        """Protected endpoint that requires JWT token"""
+        try:
+            current_user_id = get_jwt_identity()
+            user = User.query.get(current_user_id)
+            
+            if not user:
+                return jsonify({'error': 'User not found'}), 404
+            
+            return jsonify({
+                'message': 'Access granted to protected endpoint',
+                'user_id': current_user_id,
+                'user': user.to_dict(),
+                'authenticated': True
+            }), 200
+            
+        except Exception as e:
+            return jsonify({'error': f'Protected endpoint error: {str(e)}'}), 500
 
     @app.route('/api/users', methods=['POST'])
     def create_user():

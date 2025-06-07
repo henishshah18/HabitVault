@@ -76,7 +76,7 @@ def create_app():
             },
             'api': {
                 'version': '1.0',
-                'endpoints': ['/api/hello', '/api/status', '/api/users']
+                'endpoints': ['/api/hello', '/api/status', '/api/users', '/api/register']
             }
         })
     
@@ -92,9 +92,54 @@ def create_app():
         except Exception as e:
             return jsonify({'error': str(e)}), 500
     
+    @app.route('/api/register', methods=['POST'])
+    def register():
+        """Register a new user"""
+        try:
+            data = request.get_json()
+            
+            # Validate required fields
+            if not data:
+                return jsonify({'error': 'Request body is required'}), 400
+            
+            if 'email' not in data or not data['email']:
+                return jsonify({'error': 'Email is required'}), 400
+                
+            if 'password' not in data or not data['password']:
+                return jsonify({'error': 'Password is required'}), 400
+            
+            email = data['email'].strip().lower()
+            password = data['password']
+            
+            # Basic email validation
+            if '@' not in email or '.' not in email:
+                return jsonify({'error': 'Invalid email format'}), 400
+            
+            # Check if user already exists
+            existing_user = User.query.filter_by(email=email).first()
+            
+            if existing_user:
+                return jsonify({'error': 'User with this email already exists'}), 409
+            
+            # Hash the password
+            password_hash = generate_password_hash(password)
+            user = User(email=email, password_hash=password_hash)
+            
+            db.session.add(user)
+            db.session.commit()
+            
+            return jsonify({
+                'message': 'User registered successfully',
+                'user': user.to_dict()
+            }), 201
+            
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({'error': f'Registration failed: {str(e)}'}), 500
+
     @app.route('/api/users', methods=['POST'])
     def create_user():
-        """Create a new user"""
+        """Create a new user (legacy endpoint)"""
         try:
             data = request.get_json()
             

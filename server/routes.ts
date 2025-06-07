@@ -50,10 +50,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!response.ok) {
         const errorText = await response.text();
         log(`Flask error response: ${response.status} - ${errorText}`, "error");
-        return res.status(response.status).json({ 
-          error: 'Flask backend error',
-          details: errorText
-        });
+        try {
+          const errorJson = JSON.parse(errorText);
+          return res.status(response.status).json(errorJson);
+        } catch {
+          return res.status(response.status).json({ 
+            error: 'Flask backend error',
+            details: errorText
+          });
+        }
       }
 
       // Handle empty responses (like OPTIONS requests)

@@ -20,7 +20,6 @@ A modern, full-stack habit tracking application designed to help users build and
 - TailwindCSS for styling
 - Radix UI components
 - React Query for data fetching
-- Framer Motion for animations
 
 ### Backend
 - Flask (Python) for core business logic

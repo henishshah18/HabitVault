@@ -7,6 +7,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { ProgressCircle } from './ProgressCircle';
 import { MilestoneProgress } from './MilestoneProgress';
+import { HabitForm } from './HabitForm';
 import { Flame, Trophy, CheckCircle2, Target, Plus } from 'lucide-react';
 
 interface Habit {
@@ -44,6 +45,7 @@ export function DailyCheckin({ onLogout, onNewHabit }: DailyCheckinProps) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+  const [showHabitForm, setShowHabitForm] = useState(false);
   const { toast } = useToast();
 
   // Calculate progress for today's habits only
@@ -218,22 +220,17 @@ export function DailyCheckin({ onLogout, onNewHabit }: DailyCheckinProps) {
         <MilestoneProgress milestone={user.milestone} />
       )}
 
-      {/* Today's Habits */}
+      {/* Today's Targets */}
       {todaysHabits.length > 0 ? (
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle>Today's Habits</CardTitle>
+                <CardTitle>Today's Targets</CardTitle>
                 <CardDescription>Check off your habits as you complete them</CardDescription>
               </div>
               
               <div className="flex items-center space-x-4">
-                <Button onClick={onNewHabit} className="flex items-center space-x-2">
-                  <Plus className="w-4 h-4" />
-                  <span>New Habit</span>
-                </Button>
-                
                 {/* Progress Circle */}
                 <ProgressCircle 
                   completed={completedTasks} 

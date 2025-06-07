@@ -74,10 +74,7 @@ export function Dashboard({ onLogout }: DashboardProps) {
   }, [onLogout]);
 
   const handleLogout = () => {
-    const userId = getCurrentUserId();
-    if (userId) {
-      clearUserData(userId);
-    }
+    // Only remove auth tokens, NOT user preferences - they should persist
     localStorage.removeItem('authToken');
     localStorage.removeItem('userId');
     // Remove dark mode class on logout

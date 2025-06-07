@@ -72,36 +72,43 @@ export function HabitCompletionHeatmap({ habitId }: HabitCompletionHeatmapProps)
         });
       }
 
-      // Calculate completion data for each day
+      // Fetch completion history for each habit
       for (const habit of habits) {
-        const habitStart = new Date(habit.start_date);
-        
-        for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-          const dateStr = d.toISOString().split('T')[0];
-          
-          // Check if habit is due on this day
-          if (d >= habitStart && isDueOnDate(habit.target_days, d)) {
-            const dayData = completionMap.get(dateStr);
-            if (dayData) {
-              dayData.total_habits++;
+        try {
+          const historyResponse = await fetch(`/api/habits/${habit.id}/history?start_date=${startDate}&end_date=${endDate}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+
+          if (historyResponse.ok) {
+            const historyData = await historyResponse.json();
+            const completionHistory = historyData.history || [];
+            
+            const habitStart = new Date(habit.start_date);
+            
+            for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+              const dateStr = d.toISOString().split('T')[0];
               
-              // Check if habit was completed on this day
-              if (habit.is_completed_today && dateStr === new Date().toISOString().split('T')[0]) {
-                dayData.completed_habits++;
-              }
-              // For past dates, we need to check completion history
-              else if (d < new Date()) {
-                // For now, we'll use a simplified check - in a real app you'd query completion history
-                const isCompleted = Math.random() > 0.3; // Placeholder - replace with actual completion check
-                if (isCompleted) {
-                  dayData.completed_habits++;
+              // Check if habit is due on this day
+              if (d >= habitStart && isDueOnDate(habit.target_days, d)) {
+                const dayData = completionMap.get(dateStr);
+                if (dayData) {
+                  dayData.total_habits++;
+                  
+                  // Check if habit was completed on this day
+                  const completionForDay = completionHistory.find((h: any) => h.date === dateStr);
+                  if (completionForDay && completionForDay.status === 'completed') {
+                    dayData.completed_habits++;
+                  }
+                  
+                  dayData.completion_ratio = dayData.total_habits > 0 ? dayData.completed_habits / dayData.total_habits : 0;
+                  completionMap.set(dateStr, dayData);
                 }
               }
-              
-              dayData.completion_ratio = dayData.total_habits > 0 ? dayData.completed_habits / dayData.total_habits : 0;
-              completionMap.set(dateStr, dayData);
             }
           }
+        } catch (error) {
+          console.error(`Failed to fetch history for habit ${habit.id}:`, error);
+          // Continue processing other habits even if one fails
         }
       }
 

@@ -147,33 +147,27 @@ export function AnalyticsDashboard() {
         </Card>
       </div>
 
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold">Habit Completion Calendar</h2>
-        </div>
-
-        {loading ? (
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-center py-8">
-                <div className="w-6 h-6 border-2 border-blue-300 border-t-blue-600 rounded-full animate-spin" />
-              </div>
-            </CardContent>
-          </Card>
-        ) : habits.length === 0 ? (
-          <Card>
-            <CardContent className="text-center py-12">
-              <BarChart3 className="w-16 h-16 mx-auto mb-4 opacity-50" />
-              <h3 className="text-xl font-semibold mb-2">No Habits Found</h3>
-              <p className="text-muted-foreground">
-                Create some habits to see your analytics and history
-              </p>
-            </CardContent>
-          </Card>
-        ) : (
-          <HabitCompletionHeatmap />
-        )}
-      </div>
+      {loading ? (
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-center py-8">
+              <div className="w-6 h-6 border-2 border-blue-300 border-t-blue-600 rounded-full animate-spin" />
+            </div>
+          </CardContent>
+        </Card>
+      ) : habits.length === 0 ? (
+        <Card>
+          <CardContent className="text-center py-12">
+            <BarChart3 className="w-16 h-16 mx-auto mb-4 opacity-50" />
+            <h3 className="text-xl font-semibold mb-2">No Habits Found</h3>
+            <p className="text-muted-foreground">
+              Create some habits to see your analytics and history
+            </p>
+          </CardContent>
+        </Card>
+      ) : (
+        <HabitCompletionHeatmap />
+      )}
     </div>
   );
 }

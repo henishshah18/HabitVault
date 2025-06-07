@@ -52,13 +52,18 @@ export const saveUserPreferences = (userId: number, preferences: Partial<UserPre
   }
 };
 
-// Update a specific preference
+// Update a specific preference and notify components
 export const updateUserPreference = <K extends keyof UserPreferences>(
   userId: number,
   key: K,
   value: UserPreferences[K]
 ): void => {
   saveUserPreferences(userId, { [key]: value });
+  
+  // Dispatch custom event to notify components of preference changes
+  window.dispatchEvent(new CustomEvent('userPreferenceChanged', {
+    detail: { userId, key, value }
+  }));
 };
 
 // Clear all user data from localStorage (for logout)

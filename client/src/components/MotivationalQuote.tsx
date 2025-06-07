@@ -51,12 +51,23 @@ export function MotivationalQuote() {
   const [showQuotes, setShowQuotes] = useState(true);
 
   useEffect(() => {
-    // Check user-scoped settings for motivational quotes preference
-    const userId = getCurrentUserId();
-    if (userId) {
-      const userPreferences = getUserPreferences(userId);
-      setShowQuotes(userPreferences.motivationalQuotes !== false);
-    }
+    const loadPreferences = () => {
+      // Check user-scoped settings for motivational quotes preference
+      const userId = getCurrentUserId();
+      if (userId) {
+        const userPreferences = getUserPreferences(userId);
+        setShowQuotes(userPreferences.motivationalQuotes !== false);
+      }
+    };
+
+    const handlePreferenceChange = (event: CustomEvent) => {
+      if (event.detail.key === 'motivationalQuotes') {
+        setShowQuotes(event.detail.value !== false);
+      }
+    };
+
+    // Initial load
+    loadPreferences();
 
     // Get a consistent quote for the day based on the date
     const today = new Date();
@@ -72,6 +83,13 @@ export function MotivationalQuote() {
     
     const quoteIndex = Math.abs(hash) % motivationalQuotes.length;
     setCurrentQuote(motivationalQuotes[quoteIndex]);
+
+    // Listen for preference changes
+    window.addEventListener('userPreferenceChanged', handlePreferenceChange as EventListener);
+
+    return () => {
+      window.removeEventListener('userPreferenceChanged', handlePreferenceChange as EventListener);
+    };
   }, []);
 
   if (!showQuotes) {

@@ -36,6 +36,12 @@ export function Dashboard({ onLogout }: DashboardProps) {
         return;
       }
 
+      // Initialize user preferences immediately
+      const userId = getCurrentUserId();
+      if (userId) {
+        initializeUserPreferences(userId);
+      }
+
       try {
         const response = await fetch('/api/protected', {
           method: 'GET',
@@ -74,6 +80,8 @@ export function Dashboard({ onLogout }: DashboardProps) {
     }
     localStorage.removeItem('authToken');
     localStorage.removeItem('userId');
+    // Remove dark mode class on logout
+    document.documentElement.classList.remove('dark');
     onLogout();
   };
 

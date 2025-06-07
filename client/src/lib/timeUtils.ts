@@ -49,13 +49,9 @@ export const getUserTimezone = (): string => {
  * Convert UTC timestamp to user's local timezone and format
  */
 export const formatCompletionTime = (timestamp: string): string => {
-  // Ensure the timestamp is treated as UTC if it doesn't have timezone info
-  let utcTimestamp = timestamp;
-  if (!timestamp.endsWith('Z') && !timestamp.includes('+') && !timestamp.includes('-')) {
-    utcTimestamp = timestamp + 'Z';
-  }
-  
-  const date = new Date(utcTimestamp);
+  // Parse the timestamp directly without timezone manipulation
+  // since we're now storing local timestamps from the frontend
+  const date = new Date(timestamp);
   
   return date.toLocaleTimeString([], {
     hour: '2-digit',

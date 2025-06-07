@@ -4,7 +4,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, Save, X } from 'lucide-react';
 
@@ -30,16 +31,39 @@ interface HabitFormProps {
 export function HabitForm({ habit, onSuccess, onCancel }: HabitFormProps) {
   const [name, setName] = useState('');
   const [targetDays, setTargetDays] = useState('every_day');
+  const [customDays, setCustomDays] = useState<string[]>([]);
   const [startDate, setStartDate] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const { toast } = useToast();
+
+  const daysOfWeek = [
+    { id: 'monday', label: 'Monday' },
+    { id: 'tuesday', label: 'Tuesday' },
+    { id: 'wednesday', label: 'Wednesday' },
+    { id: 'thursday', label: 'Thursday' },
+    { id: 'friday', label: 'Friday' },
+    { id: 'saturday', label: 'Saturday' },
+    { id: 'sunday', label: 'Sunday' },
+  ];
+
+  const handleCustomDayToggle = (dayId: string, checked: boolean) => {
+    if (checked) {
+      setCustomDays([...customDays, dayId]);
+    } else {
+      setCustomDays(customDays.filter(day => day !== dayId));
+    }
+  };
 
   useEffect(() => {
     if (habit) {
       setName(habit.name);
       setTargetDays(habit.target_days);
       setStartDate(habit.start_date);
+      // If custom days, parse them (for now just reset)
+      if (habit.target_days === 'custom') {
+        setCustomDays([]);
+      }
     } else {
       // Set default start date to today
       const today = new Date().toISOString().split('T')[0];
@@ -72,7 +96,7 @@ export function HabitForm({ habit, onSuccess, onCancel }: HabitFormProps) {
         },
         body: JSON.stringify({
           name: name.trim(),
-          target_days: targetDays,
+          target_days: targetDays === 'custom' ? customDays.join(',') : targetDays,
           start_date: startDate,
         }),
       });
@@ -95,11 +119,7 @@ export function HabitForm({ habit, onSuccess, onCancel }: HabitFormProps) {
     }
   };
 
-  const targetDaysOptions = [
-    { value: 'every_day', label: 'Every Day' },
-    { value: 'weekdays', label: 'Weekdays (Mon-Fri)' },
-    { value: 'custom', label: 'Custom Schedule' },
-  ];
+
 
   return (
     <Card className="w-full max-w-lg mx-auto">
@@ -143,24 +163,52 @@ export function HabitForm({ habit, onSuccess, onCancel }: HabitFormProps) {
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="target-days">Target Days</Label>
-            <Select
+          <div className="space-y-4">
+            <Label>Target Days</Label>
+            <RadioGroup
               value={targetDays}
               onValueChange={setTargetDays}
               disabled={isLoading}
+              className="space-y-3"
             >
-              <SelectTrigger>
-                <SelectValue placeholder="Select target days" />
-              </SelectTrigger>
-              <SelectContent>
-                {targetDaysOptions.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="every_day" id="every_day" />
+                <Label htmlFor="every_day">Every Day</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="weekdays" id="weekdays" />
+                <Label htmlFor="weekdays">Weekdays (Mon-Fri)</Label>
+              </div>
+              <div className="space-y-3">
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="custom" id="custom" />
+                  <Label htmlFor="custom">Custom Schedule</Label>
+                </div>
+                
+                {targetDays === 'custom' && (
+                  <div className="ml-6 space-y-2">
+                    <p className="text-sm text-muted-foreground">Select the days of the week:</p>
+                    <div className="grid grid-cols-2 gap-2">
+                      {daysOfWeek.map((day) => (
+                        <div key={day.id} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={day.id}
+                            checked={customDays.includes(day.id)}
+                            onCheckedChange={(checked) => 
+                              handleCustomDayToggle(day.id, checked === true)
+                            }
+                            disabled={isLoading}
+                          />
+                          <Label htmlFor={day.id} className="text-sm">
+                            {day.label}
+                          </Label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </RadioGroup>
           </div>
 
           <div className="space-y-2">

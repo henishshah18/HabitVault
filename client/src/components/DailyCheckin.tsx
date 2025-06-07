@@ -213,65 +213,35 @@ export function DailyCheckin({ onLogout, onNewHabit }: DailyCheckinProps) {
         </Alert>
       )}
 
-      {/* Progress Tracking */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>Today's Progress</CardTitle>
-              <CardDescription>
-                {isPerfectDay 
-                  ? "Perfect Day! All habits completed!" 
-                  : `${completedTasks} of ${totalTasks} habits completed`
-                }
-              </CardDescription>
-            </div>
-            
-            {/* Improved Progress Circle */}
-            <div className="relative">
-              <div className="w-24 h-24 rounded-full border-4 border-muted flex items-center justify-center relative overflow-hidden">
-                <svg className="absolute inset-0 w-full h-full transform -rotate-90" viewBox="0 0 100 100">
-                  <circle
-                    cx="50"
-                    cy="50"
-                    r="45"
-                    stroke="currentColor"
-                    strokeWidth="8"
-                    fill="none"
-                    className="text-muted-foreground/20"
-                  />
-                  <circle
-                    cx="50"
-                    cy="50"
-                    r="45"
-                    stroke="currentColor"
-                    strokeWidth="8"
-                    fill="none"
-                    strokeDasharray={`${progressPercentage * 2.827} 282.7`}
-                    className="text-green-500 transition-all duration-500"
-                    strokeLinecap="round"
-                  />
-                </svg>
-                <div className="relative z-10 text-center">
-                  <div className="text-lg font-bold">
-                    {isPerfectDay ? '🎉' : `${completedTasks}/${totalTasks}`}
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    {isPerfectDay ? 'Perfect Day!' : 'tasks'}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </CardHeader>
-      </Card>
+      {/* Milestone Progress */}
+      {user?.milestone && (
+        <MilestoneProgress milestone={user.milestone} />
+      )}
 
       {/* Today's Habits */}
       {todaysHabits.length > 0 ? (
         <Card>
           <CardHeader>
-            <CardTitle>Today's Habits</CardTitle>
-            <CardDescription>Check off your habits as you complete them</CardDescription>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Today's Habits</CardTitle>
+                <CardDescription>Check off your habits as you complete them</CardDescription>
+              </div>
+              
+              <div className="flex items-center space-x-4">
+                <Button onClick={onNewHabit} className="flex items-center space-x-2">
+                  <Plus className="w-4 h-4" />
+                  <span>New Habit</span>
+                </Button>
+                
+                {/* Progress Circle */}
+                <ProgressCircle 
+                  completed={completedTasks} 
+                  total={totalTasks} 
+                  isPerfectDay={isPerfectDay} 
+                />
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -329,9 +299,13 @@ export function DailyCheckin({ onLogout, onNewHabit }: DailyCheckinProps) {
           <CardContent className="text-center py-12">
             <Target className="w-16 h-16 mx-auto mb-4 opacity-50" />
             <h3 className="text-xl font-semibold mb-2">No habits scheduled for today</h3>
-            <p className="text-muted-foreground">
-              Visit the Manage Habits section to add new habits or adjust your schedule.
+            <p className="text-muted-foreground mb-6">
+              Start building better habits by adding your first one!
             </p>
+            <Button onClick={onNewHabit} className="flex items-center space-x-2">
+              <Plus className="w-4 h-4" />
+              <span>Add Your First Habit</span>
+            </Button>
           </CardContent>
         </Card>
       )}

@@ -60,13 +60,21 @@ def initialize_database():
 
 def calculate_current_streak(habit):
     """Calculate current streak by checking consecutive completions backward from today"""
-    from datetime import date, timedelta
+    from datetime import date, timedelta, datetime
     
     # Start from today and go backward
     current_date = date.today()
     streak = 0
     
-    while True:
+    # Safety check - don't go back before habit start date
+    habit_start = habit.start_date
+    if isinstance(habit_start, str):
+        try:
+            habit_start = datetime.strptime(habit_start, '%Y-%m-%d').date()
+        except ValueError:
+            return 0
+    
+    while current_date >= habit_start:
         # Check if habit was due on this date
         if not is_habit_due_on_date(habit, current_date):
             # If habit wasn't due, move to previous day without breaking streak
@@ -86,18 +94,26 @@ def calculate_current_streak(habit):
             # Streak is broken
             break
             
-        # Safety check to avoid infinite loops (limit to 1000 days)
-        if streak > 1000:
+        # Safety check to avoid infinite loops (limit to 365 days)
+        if streak > 365:
             break
     
     return streak
 
 def is_habit_due_on_date(habit, check_date):
     """Check if a habit is due on a specific date based on target_days and start_date"""
-    from datetime import date
+    from datetime import date, datetime
+    
+    # Handle habit start date conversion
+    habit_start = habit.start_date
+    if isinstance(habit_start, str):
+        try:
+            habit_start = datetime.strptime(habit_start, '%Y-%m-%d').date()
+        except ValueError:
+            return False
     
     # Check if the date is on or after the habit start date
-    if check_date < habit.start_date:
+    if check_date < habit_start:
         return False
     
     # Get day of week (0=Monday, 6=Sunday in our backend format)

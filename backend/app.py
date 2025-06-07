@@ -74,28 +74,44 @@ def calculate_current_streak(habit):
         except ValueError:
             return 0
     
+    # First, check if habit is completed today (if due today)
+    if is_habit_due_on_date(habit, current_date):
+        today_completion = HabitCompletion.query.filter_by(
+            habit_id=habit.id,
+            completion_date=current_date
+        ).first()
+        
+        if today_completion:
+            streak = 1
+        else:
+            # Not completed today but due today - streak is 0
+            return 0
+            
+        # Move to previous day
+        current_date -= timedelta(days=1)
+    
+    # Now check consecutive completions going backward
     while current_date >= habit_start:
-        # Check if habit was due on this date
+        # Skip days when habit wasn't due
         if not is_habit_due_on_date(habit, current_date):
-            # If habit wasn't due, move to previous day without breaking streak
             current_date -= timedelta(days=1)
             continue
         
-        # Check if habit was completed on this date
+        # This is a day when habit was due - check if completed
         completion = HabitCompletion.query.filter_by(
             habit_id=habit.id,
             completion_date=current_date
         ).first()
         
         if completion:
+            # Completed on this day - increment streak
             streak += 1
             current_date -= timedelta(days=1)
         else:
-            # Streak is broken - reset to 0
-            streak = 0
+            # Missed this day - streak stops here, don't reset to 0
             break
             
-        # Safety check to avoid infinite loops (limit to 365 days)
+        # Safety check to avoid infinite loops
         if streak > 365:
             break
     
